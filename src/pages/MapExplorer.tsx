@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback, useMemo, memo } from "react";
+import { useEffect, useState, useCallback, useMemo, memo, lazy, Suspense } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import Navigation from "@/components/Navigation";
@@ -6,13 +6,11 @@ import Footer from "@/components/Footer";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LoadingVFX } from "@/components/3D/LoadingVFX";
-import { MotionSection, StaggerContainer, StaggerItem } from "@/components/MotionSection";
+import { MotionSection } from "@/components/MotionSection";
 import { 
   MapPin, 
   AlertTriangle, 
-  TrendingUp, 
   Zap, 
   Globe2, 
   Thermometer, 
@@ -21,11 +19,13 @@ import {
   Eye,
   Clock,
   Activity,
-  Layers,
   Filter,
   RefreshCw
 } from "lucide-react";
 import { toast } from "sonner";
+
+// Lazy load the heavy Leaflet map
+const LeafletMap = lazy(() => import("@/components/Map/LeafletMap"));
 
 interface Anomaly {
   id: string;
@@ -228,20 +228,11 @@ const MapExplorer = () => {
                     </Button>
                     <div className="flex rounded-lg border border-border overflow-hidden">
                       <Button
-                        variant={mapView === '2d' ? 'default' : 'ghost'}
+                        variant="default"
                         size="sm"
-                        onClick={() => setMapView('2d')}
                         className="rounded-none"
                       >
-                        <Layers className="w-4 h-4" />
-                      </Button>
-                      <Button
-                        variant={mapView === 'heat' ? 'default' : 'ghost'}
-                        size="sm"
-                        onClick={() => setMapView('heat')}
-                        className="rounded-none"
-                      >
-                        <Thermometer className="w-4 h-4" />
+                        <Globe2 className="w-4 h-4" />
                       </Button>
                     </div>
                   </div>
@@ -252,7 +243,7 @@ const MapExplorer = () => {
 
           {/* Main Map */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Map Area */}
+            {/* Real Leaflet Map */}
             <MotionSection delay={0.2} className="lg:col-span-2">
               <Card className="glass-ultra border-primary/20 overflow-hidden">
                 <CardHeader className="pb-2">
@@ -265,89 +256,22 @@ const MapExplorer = () => {
                     </Badge>
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="p-4">
-                  <div className="relative w-full aspect-[2/1] bg-gradient-to-b from-primary/5 to-transparent rounded-lg border border-border/50 overflow-hidden">
-                    {/* Map Background Grid */}
-                    <div className="absolute inset-0 bg-cyber-grid opacity-30" />
-                    
-                    {/* Latitude lines */}
-                    {[0, 25, 50, 75, 100].map((y) => (
-                      <div
-                        key={`lat-${y}`}
-                        className="absolute left-0 right-0 h-px bg-primary/20"
-                        style={{ top: `${y}%` }}
-                      />
-                    ))}
-                    
-                    {/* Longitude lines */}
-                    {[0, 25, 50, 75, 100].map((x) => (
-                      <div
-                        key={`lon-${x}`}
-                        className="absolute top-0 bottom-0 w-px bg-primary/20"
-                        style={{ left: `${x}%` }}
-                      />
-                    ))}
-
-                    {/* Continent outlines (simplified) */}
-                    <svg className="absolute inset-0 w-full h-full pointer-events-none opacity-30" viewBox="0 0 360 180">
-                      {/* North America */}
-                      <path d="M60,30 L90,25 L110,40 L100,60 L80,70 L60,50 Z" fill="currentColor" className="text-primary/40" />
-                      {/* South America */}
-                      <path d="M90,90 L100,80 L110,100 L95,130 L85,120 Z" fill="currentColor" className="text-primary/40" />
-                      {/* Europe */}
-                      <path d="M170,35 L190,30 L200,45 L185,55 L170,50 Z" fill="currentColor" className="text-primary/40" />
-                      {/* Africa */}
-                      <path d="M170,70 L195,60 L205,90 L185,120 L165,100 Z" fill="currentColor" className="text-primary/40" />
-                      {/* Asia */}
-                      <path d="M200,30 L260,25 L280,50 L250,70 L210,60 Z" fill="currentColor" className="text-primary/40" />
-                      {/* Australia */}
-                      <path d="M260,100 L290,95 L295,115 L270,120 L260,110 Z" fill="currentColor" className="text-primary/40" />
-                    </svg>
-
-                    {/* Heat overlay for heat view */}
-                    {mapView === 'heat' && (
-                      <div className="absolute inset-0 pointer-events-none">
-                        {filteredAnomalies.map((anomaly) => (
-                          <div
-                            key={`heat-${anomaly.id}`}
-                            className="absolute rounded-full blur-2xl"
-                            style={{
-                              left: `${((anomaly.longitude + 180) / 360) * 100}%`,
-                              top: `${((90 - anomaly.latitude) / 180) * 100}%`,
-                              width: '80px',
-                              height: '80px',
-                              transform: 'translate(-50%, -50%)',
-                              background: anomaly.severity === 'critical' 
-                                ? 'radial-gradient(circle, rgba(239,68,68,0.6) 0%, transparent 70%)'
-                                : anomaly.severity === 'high'
-                                ? 'radial-gradient(circle, rgba(249,115,22,0.5) 0%, transparent 70%)'
-                                : 'radial-gradient(circle, rgba(59,130,246,0.4) 0%, transparent 70%)',
-                            }}
-                          />
-                        ))}
+                <CardContent className="p-0">
+                  <div className="h-[500px] w-full">
+                    <Suspense fallback={
+                      <div className="w-full h-full flex items-center justify-center bg-background/50">
+                        <LoadingVFX text="Loading Map..." />
                       </div>
-                    )}
-
-                    {/* Markers */}
-                    {filteredAnomalies.map((anomaly) => (
-                      <MapMarker
-                        key={anomaly.id}
-                        anomaly={anomaly}
-                        isSelected={selectedAnomaly?.id === anomaly.id}
-                        onClick={() => setSelectedAnomaly(anomaly)}
+                    }>
+                      <LeafletMap
+                        onAnomalySelect={setSelectedAnomaly}
+                        selectedAnomaly={selectedAnomaly}
+                        filterSeverity={filterSeverity}
                       />
-                    ))}
-
-                    {/* Animated scan line */}
-                    <motion.div
-                      className="absolute left-0 right-0 h-0.5 bg-gradient-to-r from-transparent via-primary to-transparent"
-                      animate={{ top: ['0%', '100%', '0%'] }}
-                      transition={{ duration: 8, repeat: Infinity, ease: 'linear' }}
-                    />
+                    </Suspense>
                   </div>
-
                   {/* Legend */}
-                  <div className="flex flex-wrap gap-4 mt-4 text-xs">
+                  <div className="flex flex-wrap gap-4 p-4 text-xs border-t border-border/50">
                     <div className="flex items-center gap-2">
                       <div className="w-3 h-3 rounded-full bg-red-500" />
                       <span className="text-muted-foreground">Critical</span>

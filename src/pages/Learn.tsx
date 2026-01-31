@@ -27,15 +27,25 @@ import {
   CheckCircle,
   Lightbulb,
   Map,
-  BarChart
+  BarChart,
+  Satellite,
+  Shield,
+  Waves,
+  Mountain,
+  TreePine,
+  Flame,
+  CloudRain,
+  Snowflake,
+  Sun,
+  Moon,
+  Compass
 } from "lucide-react";
 import { toast } from "sonner";
 import Footer from "@/components/Footer";
 import { motion, AnimatePresence } from "framer-motion";
 import { LoadingVFX } from "@/components/3D/LoadingVFX";
-import { MotionSection, StaggerContainer, StaggerItem } from "@/components/MotionSection";
+import { MotionSection } from "@/components/MotionSection";
 import { Button } from "@/components/ui/button";
-import { useVoiceGuidance } from "@/hooks/useVoiceGuidance";
 
 interface EnvironmentalData {
   temperature: number;
@@ -57,7 +67,7 @@ const CourseCard = memo(({ course, onStart }: {
   course: { title: string; duration: string; lessons: number; level: string; progress: number; icon: any; description: string };
   onStart: () => void;
 }) => (
-  <Card className="glass-ultra hover:glow-border transition-all group cursor-pointer">
+  <Card className="glass-ultra hover:border-primary/30 transition-all group cursor-pointer">
     <CardContent className="p-6">
       <div className="flex items-start gap-4">
         <div className="w-14 h-14 rounded-xl bg-primary/20 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform">
@@ -147,6 +157,48 @@ const QuizCard = memo(({ question, options, onAnswer }: {
 
 QuizCard.displayName = 'QuizCard';
 
+// Learning Module Card
+const ModuleCard = memo(({ module, index }: {
+  module: { title: string; description: string; icon: any; topics: string[]; duration: string; color: string };
+  index: number;
+}) => (
+  <motion.div
+    initial={{ opacity: 0, y: 20 }}
+    whileInView={{ opacity: 1, y: 0 }}
+    viewport={{ once: true }}
+    transition={{ delay: index * 0.1 }}
+  >
+    <Card className="glass-ultra h-full hover:border-primary/30 transition-all">
+      <CardContent className="p-6">
+        <div className="flex items-center gap-4 mb-4">
+          <div 
+            className="w-12 h-12 rounded-xl flex items-center justify-center"
+            style={{ backgroundColor: `${module.color}20` }}
+          >
+            <module.icon className="w-6 h-6" style={{ color: module.color }} />
+          </div>
+          <div>
+            <h3 className="font-bold text-foreground">{module.title}</h3>
+            <p className="text-xs text-muted-foreground flex items-center gap-1">
+              <Clock className="w-3 h-3" /> {module.duration}
+            </p>
+          </div>
+        </div>
+        <p className="text-sm text-muted-foreground mb-4">{module.description}</p>
+        <div className="flex flex-wrap gap-2">
+          {module.topics.map((topic, i) => (
+            <Badge key={i} variant="secondary" className="text-xs">
+              {topic}
+            </Badge>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  </motion.div>
+));
+
+ModuleCard.displayName = 'ModuleCard';
+
 const Learn = () => {
   const [liveData, setLiveData] = useState<EnvironmentalData | null>(null);
   const [anomalyCount, setAnomalyCount] = useState(0);
@@ -157,7 +209,6 @@ const Learn = () => {
   const [activeLesson, setActiveLesson] = useState<number | null>(null);
   const [quizScore, setQuizScore] = useState(0);
   const [currentQuiz, setCurrentQuiz] = useState(0);
-  const { speak } = useVoiceGuidance();
 
   const funFacts = useMemo(() => [
     "🌍 Earth's atmosphere is 78% nitrogen and 21% oxygen!",
@@ -176,9 +227,76 @@ const Learn = () => {
     { title: "Climate Fundamentals", duration: "2h 30m", lessons: 12, level: "Beginner", progress: 100, icon: Globe, description: "Learn the basics of climate science and weather patterns" },
     { title: "Weather Pattern Analysis", duration: "3h 15m", lessons: 18, level: "Intermediate", progress: 65, icon: Wind, description: "Analyze complex weather systems and predict patterns" },
     { title: "AI in Environmental Science", duration: "4h", lessons: 24, level: "Advanced", progress: 20, icon: Brain, description: "Machine learning applications in environmental monitoring" },
-    { title: "Satellite Data Interpretation", duration: "2h 45m", lessons: 15, level: "Intermediate", progress: 0, icon: Activity, description: "Read and analyze satellite imagery for environmental insights" },
+    { title: "Satellite Data Interpretation", duration: "2h 45m", lessons: 15, level: "Intermediate", progress: 0, icon: Satellite, description: "Read and analyze satellite imagery for environmental insights" },
     { title: "Ocean & Marine Systems", duration: "3h", lessons: 16, level: "Intermediate", progress: 0, icon: Droplets, description: "Understanding ocean currents and marine ecosystems" },
     { title: "Disaster Preparedness", duration: "2h", lessons: 10, level: "Beginner", progress: 0, icon: Target, description: "Learn how to prepare for and respond to natural disasters" },
+  ], []);
+
+  const learningModules = useMemo(() => [
+    { 
+      title: "Climate Science Basics", 
+      description: "Understand the fundamental principles of climate and weather systems",
+      icon: Globe, 
+      topics: ["Atmosphere", "Climate Zones", "Weather vs Climate"],
+      duration: "45 min",
+      color: "hsl(180, 100%, 50%)"
+    },
+    { 
+      title: "Natural Disasters", 
+      description: "Learn about earthquakes, hurricanes, tsunamis and volcanic eruptions",
+      icon: Flame, 
+      topics: ["Earthquakes", "Hurricanes", "Tsunamis", "Volcanoes"],
+      duration: "1h 15m",
+      color: "hsl(0, 84%, 60%)"
+    },
+    { 
+      title: "Satellite Technology", 
+      description: "How satellites monitor Earth's environment from space",
+      icon: Satellite, 
+      topics: ["Remote Sensing", "Data Collection", "Image Analysis"],
+      duration: "50 min",
+      color: "hsl(270, 70%, 60%)"
+    },
+    { 
+      title: "Ocean Systems", 
+      description: "Deep dive into ocean currents, temperatures and marine life",
+      icon: Waves, 
+      topics: ["Currents", "El Niño", "Marine Ecosystems"],
+      duration: "1h",
+      color: "hsl(200, 100%, 50%)"
+    },
+    { 
+      title: "Weather Forecasting", 
+      description: "Modern techniques for predicting weather patterns",
+      icon: CloudRain, 
+      topics: ["Models", "Data Analysis", "Predictions"],
+      duration: "55 min",
+      color: "hsl(220, 70%, 60%)"
+    },
+    { 
+      title: "Ecosystem Monitoring", 
+      description: "Track and analyze changes in global ecosystems",
+      icon: TreePine, 
+      topics: ["Forests", "Biodiversity", "Conservation"],
+      duration: "40 min",
+      color: "hsl(120, 60%, 40%)"
+    },
+    { 
+      title: "Polar Regions", 
+      description: "Understanding Arctic and Antarctic climate dynamics",
+      icon: Snowflake, 
+      topics: ["Ice Sheets", "Sea Ice", "Permafrost"],
+      duration: "35 min",
+      color: "hsl(200, 80%, 70%)"
+    },
+    { 
+      title: "Solar Influence", 
+      description: "How the sun affects Earth's climate and weather",
+      icon: Sun, 
+      topics: ["Solar Cycles", "Radiation", "Space Weather"],
+      duration: "30 min",
+      color: "hsl(45, 100%, 60%)"
+    },
   ], []);
 
   const achievements = useMemo(() => [
@@ -194,6 +312,8 @@ const Learn = () => {
     { question: "What percentage of Earth's atmosphere is nitrogen?", options: ["78%", "21%", "50%", "45%"] },
     { question: "What produces over 50% of the world's oxygen?", options: ["The ocean", "Rainforests", "Trees", "Plankton"] },
     { question: "How many volts are in a lightning bolt?", options: ["1 billion", "1 million", "100 million", "10 billion"] },
+    { question: "What causes the El Niño phenomenon?", options: ["Warm Pacific waters", "Cold Atlantic currents", "Volcanic activity", "Solar flares"] },
+    { question: "Which layer of the atmosphere contains the ozone layer?", options: ["Stratosphere", "Troposphere", "Mesosphere", "Thermosphere"] },
   ], []);
 
   useEffect(() => {
@@ -264,10 +384,8 @@ const Learn = () => {
     const isCorrect = quizzes[currentQuiz].options[0] === answer;
     if (isCorrect) {
       setQuizScore(prev => prev + 1);
-      speak("Correct! Great job!");
       toast.success("Correct! +10 points");
     } else {
-      speak("Not quite. The correct answer was " + quizzes[currentQuiz].options[0]);
       toast.error("Not quite. Try the next one!");
     }
     
@@ -280,13 +398,12 @@ const Learn = () => {
         setQuizScore(0);
       }
     }, 2000);
-  }, [currentQuiz, quizScore, quizzes, speak]);
+  }, [currentQuiz, quizScore, quizzes]);
 
   const handleStartCourse = useCallback((index: number) => {
     setActiveLesson(index);
-    speak(`Starting course: ${courses[index].title}`);
     toast.success(`Starting: ${courses[index].title}`);
-  }, [courses, speak]);
+  }, [courses]);
 
   const getSeverityColor = (severity: string) => {
     switch (severity.toLowerCase()) {
@@ -306,8 +423,8 @@ const Learn = () => {
   }
 
   return (
-    <div className="min-h-screen bg-space-gradient relative overflow-hidden">
-      <div className="absolute inset-0 bg-cyber-grid pointer-events-none opacity-20" />
+    <div className="min-h-screen bg-space-gradient relative overflow-x-hidden">
+      <div className="absolute inset-0 bg-cyber-grid pointer-events-none opacity-10" />
       
       <Navigation />
       
@@ -320,13 +437,13 @@ const Learn = () => {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
             >
-              <GraduationCap className="w-4 h-4 text-primary animate-pulse" />
+              <GraduationCap className="w-4 h-4 text-primary" />
               <span className="text-sm font-medium text-primary">Interactive Learning Hub</span>
             </motion.div>
             <div className="flex items-center justify-center gap-3 mb-4">
               <Brain className="w-10 h-10 sm:w-12 sm:h-12 text-primary" />
-              <h1 className="text-4xl sm:text-5xl font-bold bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent">
-                Learn & Explore
+              <h1 className="text-4xl sm:text-5xl font-bold text-foreground">
+                Learn & <span className="text-primary">Explore</span>
               </h1>
             </div>
             <p className="text-lg sm:text-xl text-muted-foreground max-w-3xl mx-auto">
@@ -385,7 +502,7 @@ const Learn = () => {
               <CardContent className="p-6">
                 <div className="flex items-center gap-4">
                   <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center shrink-0">
-                    <Sparkles className="w-6 h-6 text-primary animate-pulse" />
+                    <Sparkles className="w-6 h-6 text-primary" />
                   </div>
                   <div className="flex-1">
                     <h3 className="font-semibold text-lg mb-1 text-foreground">Did You Know?</h3>
@@ -408,56 +525,61 @@ const Learn = () => {
 
           <Tabs defaultValue="courses" className="w-full">
             <TabsList className="grid w-full grid-cols-2 sm:grid-cols-5 mb-8 glass-panel">
-              <TabsTrigger value="courses" className="text-sm sm:text-base">
+              <TabsTrigger value="courses" className="text-sm sm:text-base text-foreground">
                 <Video className="w-4 h-4 mr-2" />
                 Courses
               </TabsTrigger>
-              <TabsTrigger value="quiz" className="text-sm sm:text-base">
+              <TabsTrigger value="modules" className="text-sm sm:text-base text-foreground">
+                <BookOpen className="w-4 h-4 mr-2" />
+                Modules
+              </TabsTrigger>
+              <TabsTrigger value="quiz" className="text-sm sm:text-base text-foreground">
                 <Lightbulb className="w-4 h-4 mr-2" />
                 Quiz
               </TabsTrigger>
-              <TabsTrigger value="realtime" className="text-sm sm:text-base">
+              <TabsTrigger value="realtime" className="text-sm sm:text-base text-foreground">
                 <Zap className="w-4 h-4 mr-2" />
                 Real-Time
               </TabsTrigger>
-              <TabsTrigger value="insights" className="text-sm sm:text-base">
-                <BarChart className="w-4 h-4 mr-2" />
-                Insights
-              </TabsTrigger>
-              <TabsTrigger value="achievements" className="text-sm sm:text-base">
+              <TabsTrigger value="achievements" className="text-sm sm:text-base text-foreground">
                 <Award className="w-4 h-4 mr-2" />
-                Badges
+                Rewards
               </TabsTrigger>
             </TabsList>
 
-            {/* Courses Tab */}
             <TabsContent value="courses" className="space-y-6">
-              <StaggerContainer className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <div className="grid md:grid-cols-2 gap-6">
                 {courses.map((course, i) => (
-                  <StaggerItem key={i}>
-                    <CourseCard course={course} onStart={() => handleStartCourse(i)} />
-                  </StaggerItem>
+                  <CourseCard key={i} course={course} onStart={() => handleStartCourse(i)} />
                 ))}
-              </StaggerContainer>
+              </div>
             </TabsContent>
 
-            {/* Quiz Tab */}
+            <TabsContent value="modules" className="space-y-6">
+              <div className="text-center mb-8">
+                <h2 className="text-2xl font-bold text-foreground mb-2">Learning Modules</h2>
+                <p className="text-muted-foreground">Explore specific topics in environmental science</p>
+              </div>
+              <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                {learningModules.map((module, i) => (
+                  <ModuleCard key={i} module={module} index={i} />
+                ))}
+              </div>
+            </TabsContent>
+
             <TabsContent value="quiz" className="space-y-6">
-              <div className="max-w-2xl mx-auto">
-                <div className="text-center mb-6">
-                  <h2 className="text-2xl font-bold text-foreground mb-2">Test Your Knowledge</h2>
-                  <p className="text-muted-foreground">Question {currentQuiz + 1} of {quizzes.length}</p>
-                  <div className="flex justify-center gap-2 mt-4">
-                    {quizzes.map((_, i) => (
-                      <div
-                        key={i}
-                        className={`w-3 h-3 rounded-full ${i === currentQuiz ? 'bg-primary' : i < currentQuiz ? 'bg-green-400' : 'bg-muted'}`}
-                      />
-                    ))}
-                  </div>
+              <div className="text-center mb-6">
+                <h2 className="text-2xl font-bold text-foreground mb-2">Test Your Knowledge</h2>
+                <p className="text-muted-foreground">Question {currentQuiz + 1} of {quizzes.length}</p>
+                <div className="mt-4 flex items-center justify-center gap-2">
+                  <span className="text-sm text-muted-foreground">Score:</span>
+                  <Badge variant="default" className="bg-primary/20 text-primary">
+                    {quizScore} points
+                  </Badge>
                 </div>
+              </div>
+              <div className="max-w-2xl mx-auto">
                 <QuizCard
-                  key={currentQuiz}
                   question={quizzes[currentQuiz].question}
                   options={quizzes[currentQuiz].options}
                   onAnswer={handleQuizAnswer}
@@ -465,173 +587,112 @@ const Learn = () => {
               </div>
             </TabsContent>
 
-            {/* Real-Time Data Tab */}
             <TabsContent value="realtime" className="space-y-6">
-              <StaggerContainer className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                {[
-                  { icon: Thermometer, label: "Temperature", value: liveData?.temperature?.toFixed(1) || "--", unit: "°C", color: "text-orange-500", max: 50 },
-                  { icon: Droplets, label: "Humidity", value: liveData?.humidity?.toFixed(0) || "--", unit: "%", color: "text-blue-500", max: 100 },
-                  { icon: Wind, label: "Wind Speed", value: liveData?.wind_speed?.toFixed(1) || "--", unit: "m/s", color: "text-cyan-500", max: 30 },
-                  { icon: Activity, label: "Pressure", value: liveData?.pressure?.toFixed(0) || "--", unit: "hPa", color: "text-purple-500", max: 1100 },
-                ].map((metric, i) => (
-                  <StaggerItem key={i}>
-                    <Card className="glass-ultra hover:glow-border transition-all">
-                      <CardHeader className="flex flex-row items-center justify-between pb-2">
-                        <CardTitle className="text-sm font-medium">{metric.label}</CardTitle>
-                        <metric.icon className={`w-5 h-5 ${metric.color}`} />
-                      </CardHeader>
-                      <CardContent>
-                        <div className="text-3xl font-bold text-foreground">
-                          {metric.value}{metric.unit}
-                        </div>
-                        <Progress 
-                          value={(parseFloat(String(metric.value)) || 0) / metric.max * 100} 
-                          className="mt-3"
-                        />
-                      </CardContent>
-                    </Card>
-                  </StaggerItem>
-                ))}
-              </StaggerContainer>
-
-              {/* Active Anomalies */}
-              <Card className="glass-ultra">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Activity className="w-5 h-5 text-primary" />
-                    Active Environmental Events ({anomalyCount})
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  {activeAnomalies.length === 0 ? (
-                    <div className="text-center py-8">
-                      <Globe className="w-12 h-12 mx-auto text-green-400 mb-3" />
-                      <p className="text-muted-foreground">No active anomalies detected. Environment is stable! 🌍</p>
-                    </div>
-                  ) : (
-                    <div className="space-y-3">
-                      {activeAnomalies.map((anomaly, idx) => (
-                        <motion.div 
-                          key={idx} 
-                          initial={{ opacity: 0, x: -20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: idx * 0.1 }}
-                          className="flex items-center justify-between p-4 rounded-xl bg-card/50 border border-border/50 hover:border-primary/30 transition-all"
-                        >
-                          <div className="flex-1">
-                            <h4 className="font-semibold text-foreground">{anomaly.name}</h4>
-                            <p className="text-sm text-muted-foreground">
-                              Detected: {new Date(anomaly.detected_at).toLocaleString()}
-                            </p>
-                          </div>
-                          <Badge variant={getSeverityColor(anomaly.severity)}>
-                            {anomaly.severity}
-                          </Badge>
-                        </motion.div>
-                      ))}
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-            </TabsContent>
-
-            {/* Insights Tab */}
-            <TabsContent value="insights" className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid md:grid-cols-2 gap-6">
                 <Card className="glass-ultra">
                   <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Globe className="w-5 h-5 text-primary" />
-                      Climate Patterns
+                    <CardTitle className="flex items-center gap-2 text-foreground">
+                      <Activity className="w-5 h-5 text-primary" />
+                      Live Environmental Data
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="space-y-4">
-                    {[
-                      { label: "Global Temperature Rise", value: "+1.1°C", progress: 73 },
-                      { label: "Sea Level Rise", value: "+21cm", progress: 65 },
-                      { label: "Arctic Ice Decline", value: "-13%", progress: 87 },
-                      { label: "CO2 Concentration", value: "421 ppm", progress: 82 },
-                    ].map((item, i) => (
-                      <div key={i} className="space-y-2">
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground">{item.label}</span>
-                          <span className="font-semibold text-foreground">{item.value}</span>
+                    {liveData ? (
+                      <>
+                        <div className="flex items-center justify-between p-3 glass-panel rounded-lg">
+                          <div className="flex items-center gap-3">
+                            <Thermometer className="w-5 h-5 text-red-400" />
+                            <span className="text-foreground">Temperature</span>
+                          </div>
+                          <span className="font-bold text-foreground">{liveData.temperature}°C</span>
                         </div>
-                        <Progress value={item.progress} className="h-2" />
-                      </div>
-                    ))}
+                        <div className="flex items-center justify-between p-3 glass-panel rounded-lg">
+                          <div className="flex items-center gap-3">
+                            <Droplets className="w-5 h-5 text-blue-400" />
+                            <span className="text-foreground">Humidity</span>
+                          </div>
+                          <span className="font-bold text-foreground">{liveData.humidity}%</span>
+                        </div>
+                        <div className="flex items-center justify-between p-3 glass-panel rounded-lg">
+                          <div className="flex items-center gap-3">
+                            <Wind className="w-5 h-5 text-cyan-400" />
+                            <span className="text-foreground">Wind Speed</span>
+                          </div>
+                          <span className="font-bold text-foreground">{liveData.wind_speed} m/s</span>
+                        </div>
+                        <div className="flex items-center justify-between p-3 glass-panel rounded-lg">
+                          <div className="flex items-center gap-3">
+                            <TrendingUp className="w-5 h-5 text-purple-400" />
+                            <span className="text-foreground">Pressure</span>
+                          </div>
+                          <span className="font-bold text-foreground">{liveData.pressure} hPa</span>
+                        </div>
+                      </>
+                    ) : (
+                      <p className="text-center text-muted-foreground py-8">No live data available</p>
+                    )}
                   </CardContent>
                 </Card>
 
                 <Card className="glass-ultra">
                   <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <TrendingUp className="w-5 h-5 text-primary" />
-                      Monitoring Statistics
+                    <CardTitle className="flex items-center gap-2 text-foreground">
+                      <Target className="w-5 h-5 text-primary" />
+                      Active Anomalies ({anomalyCount})
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-4">
-                    {[
-                      { label: "Active Sensors", value: "1,247" },
-                      { label: "Data Points Today", value: "45.8K" },
-                      { label: "Countries Covered", value: "127" },
-                      { label: "Predictions Made", value: "892" },
-                    ].map((item, i) => (
-                      <div key={i} className="flex items-center justify-between p-3 rounded-lg bg-card/50">
-                        <span className="text-muted-foreground">{item.label}</span>
-                        <span className="text-2xl font-bold text-foreground">{item.value}</span>
-                      </div>
-                    ))}
+                  <CardContent className="space-y-3">
+                    {activeAnomalies.length > 0 ? (
+                      activeAnomalies.map((anomaly, i) => (
+                        <div key={i} className="flex items-center justify-between p-3 glass-panel rounded-lg">
+                          <span className="text-foreground">{anomaly.name}</span>
+                          <Badge variant={getSeverityColor(anomaly.severity)}>
+                            {anomaly.severity}
+                          </Badge>
+                        </div>
+                      ))
+                    ) : (
+                      <p className="text-center text-muted-foreground py-8">No active anomalies</p>
+                    )}
                   </CardContent>
                 </Card>
               </div>
             </TabsContent>
 
-            {/* Achievements Tab */}
             <TabsContent value="achievements" className="space-y-6">
-              <Card className="glass-ultra">
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Award className="w-5 h-5 text-yellow-400" />
-                    Your Achievements
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-                    {achievements.map((achievement, i) => (
-                      <motion.div
-                        key={i}
-                        initial={{ opacity: 0, scale: 0.9 }}
-                        whileInView={{ opacity: 1, scale: 1 }}
-                        transition={{ delay: i * 0.1 }}
-                        viewport={{ once: true }}
-                        whileHover={{ scale: 1.05 }}
-                        className={`text-center p-4 rounded-xl border cursor-pointer transition-all ${
-                          achievement.unlocked 
-                            ? 'bg-primary/10 border-primary/30 glow-border' 
-                            : 'bg-card/50 border-border/50 opacity-60 grayscale'
-                        }`}
-                      >
-                        <div className={`w-12 h-12 mx-auto mb-2 rounded-full flex items-center justify-center ${
-                          achievement.unlocked ? 'bg-yellow-400/20' : 'bg-muted/20'
-                        }`}>
-                          <achievement.icon className={`w-6 h-6 ${achievement.unlocked ? 'text-yellow-400' : 'text-muted-foreground'}`} />
-                        </div>
-                        <h4 className="font-semibold text-sm text-foreground">{achievement.title}</h4>
-                        <p className="text-xs text-muted-foreground mt-1">{achievement.desc}</p>
-                        {achievement.unlocked && (
-                          <Badge className="mt-2 bg-green-500/20 text-green-400 border-green-500/30 text-xs">Unlocked</Badge>
-                        )}
-                      </motion.div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+              <div className="text-center mb-6">
+                <h2 className="text-2xl font-bold text-foreground mb-2">Your Achievements</h2>
+                <p className="text-muted-foreground">Unlock rewards by completing challenges</p>
+              </div>
+              <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {achievements.map((achievement, i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    whileInView={{ opacity: 1, scale: 1 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: i * 0.1 }}
+                  >
+                    <Card className={`glass-ultra p-6 text-center ${achievement.unlocked ? 'border-yellow-500/50' : 'opacity-60'}`}>
+                      <div className={`w-16 h-16 mx-auto rounded-full flex items-center justify-center mb-4 ${
+                        achievement.unlocked ? 'bg-yellow-500/20' : 'bg-muted/20'
+                      }`}>
+                        <achievement.icon className={`w-8 h-8 ${achievement.unlocked ? 'text-yellow-400' : 'text-muted-foreground'}`} />
+                      </div>
+                      <h3 className="font-bold text-foreground mb-2">{achievement.title}</h3>
+                      <p className="text-sm text-muted-foreground">{achievement.desc}</p>
+                      {achievement.unlocked && (
+                        <Badge className="mt-3 bg-yellow-500/20 text-yellow-400">Unlocked!</Badge>
+                      )}
+                    </Card>
+                  </motion.div>
+                ))}
+              </div>
             </TabsContent>
           </Tabs>
         </div>
       </div>
-
+      
       <Footer />
     </div>
   );

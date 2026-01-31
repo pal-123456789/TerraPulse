@@ -2,14 +2,18 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* ============================================
+   GOD-LEVEL DESIGN SYSTEM
+   ============================================ */
 
 @layer base {
+  * {
+    scroll-behavior: smooth;
+  }
+  
   :root {
     --background: 222 47% 5%;
-    --foreground: 180 100% 90%;
+    --foreground: 210 40% 98%;
 
     --card: 222 40% 8%;
     --card-foreground: 180 100% 95%;
@@ -26,7 +30,7 @@ All colors MUST be HSL.
     --muted: 222 30% 12%;
     --muted-foreground: 180 30% 65%;
 
-    --accent: 180 100% 45%;
+    --accent: 270 70% 60%;
     --accent-foreground: 222 47% 5%;
 
     --destructive: 0 84% 60%;
@@ -40,6 +44,7 @@ All colors MUST be HSL.
 
     --glow-cyan: 180 100% 50%;
     --glow-purple: 270 70% 60%;
+    --glow-pink: 330 90% 65%;
     --space-deep: 222 47% 3%;
     --space-light: 222 40% 12%;
 
@@ -54,20 +59,83 @@ All colors MUST be HSL.
   }
 }
 
-/* Custom animations and effects */
+/* ============================================
+   ULTIMATE KEYFRAME ANIMATIONS
+   ============================================ */
+
+/* Pulse Glow - Breathing light effect */
 @keyframes pulse-glow {
   0%, 100% {
     opacity: 1;
-    filter: drop-shadow(0 0 8px hsl(var(--glow-cyan)));
+    filter: drop-shadow(0 0 8px hsl(var(--glow-cyan))) drop-shadow(0 0 16px hsla(180, 100%, 50%, 0.5));
     transform: scale(1);
   }
   50% {
-    opacity: 0.7;
-    filter: drop-shadow(0 0 20px hsl(var(--glow-cyan)));
+    opacity: 0.9;
+    filter: drop-shadow(0 0 20px hsl(var(--glow-cyan))) drop-shadow(0 0 40px hsla(180, 100%, 50%, 0.6));
     transform: scale(1.02);
   }
 }
 
+/* Liquid gradient flow */
+@keyframes liquid-gradient {
+  0% {
+    background-position: 0% 50%;
+    filter: hue-rotate(0deg);
+  }
+  50% {
+    background-position: 100% 50%;
+    filter: hue-rotate(15deg);
+  }
+  100% {
+    background-position: 0% 50%;
+    filter: hue-rotate(0deg);
+  }
+}
+
+/* Breathing effect */
+@keyframes breathe {
+  0%, 100% {
+    opacity: 0.4;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.05);
+  }
+}
+
+/* Shimmer slide effect */
+@keyframes shimmer-slide {
+  0% {
+    transform: translateX(-100%) skewX(-15deg);
+  }
+  100% {
+    transform: translateX(200%) skewX(-15deg);
+  }
+}
+
+/* Scanline */
+@keyframes scanline {
+  0% {
+    top: -100%;
+  }
+  100% {
+    top: 100%;
+  }
+}
+
+/* Border rotation */
+@keyframes border-rotate {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* Float effect */
 @keyframes float {
   0%, 100% {
     transform: translateY(0px);
@@ -77,6 +145,7 @@ All colors MUST be HSL.
   }
 }
 
+/* Shimmer */
 @keyframes shimmer {
   0% {
     background-position: -1000px 0;
@@ -86,6 +155,7 @@ All colors MUST be HSL.
   }
 }
 
+/* Slide up */
 @keyframes slide-up {
   0% {
     transform: translateY(20px);
@@ -97,6 +167,7 @@ All colors MUST be HSL.
   }
 }
 
+/* Fade in with scale */
 @keyframes fade-in {
   0% {
     opacity: 0;
@@ -108,6 +179,7 @@ All colors MUST be HSL.
   }
 }
 
+/* Gradient shift */
 @keyframes gradient-shift {
   0%, 100% {
     background-position: 0% 50%;
@@ -117,21 +189,23 @@ All colors MUST be HSL.
   }
 }
 
+/* 3D Float */
 @keyframes float-3d {
   0%, 100% {
     transform: translateY(0px) rotateX(0deg) rotateY(0deg);
   }
   25% {
-    transform: translateY(-20px) rotateX(5deg) rotateY(5deg);
+    transform: translateY(-15px) rotateX(3deg) rotateY(3deg);
   }
   50% {
-    transform: translateY(-10px) rotateX(-5deg) rotateY(-5deg);
+    transform: translateY(-8px) rotateX(-2deg) rotateY(-2deg);
   }
   75% {
-    transform: translateY(-15px) rotateX(3deg) rotateY(-3deg);
+    transform: translateY(-12px) rotateX(2deg) rotateY(-2deg);
   }
 }
 
+/* Glow pulse */
 @keyframes glow-pulse {
   0%, 100% {
     box-shadow: 0 0 20px hsla(180, 100%, 50%, 0.3),
@@ -144,6 +218,7 @@ All colors MUST be HSL.
   }
 }
 
+/* Scale pulse */
 @keyframes scale-pulse {
   0%, 100% { 
     transform: scale(1); 
@@ -153,6 +228,7 @@ All colors MUST be HSL.
   }
 }
 
+/* Slide animations */
 @keyframes slide-in-left {
   from {
     transform: translateX(-100%);
@@ -175,6 +251,7 @@ All colors MUST be HSL.
   }
 }
 
+/* Slow spin */
 @keyframes spin-slow {
   from {
     transform: rotate(0deg);
@@ -184,6 +261,7 @@ All colors MUST be HSL.
   }
 }
 
+/* Neon flicker */
 @keyframes neon-flicker {
   0%, 19%, 21%, 23%, 25%, 54%, 56%, 100% {
     text-shadow: 
@@ -197,6 +275,7 @@ All colors MUST be HSL.
   }
 }
 
+/* Hologram */
 @keyframes hologram {
   0% {
     background-position: 0% 0%;
@@ -209,15 +288,7 @@ All colors MUST be HSL.
   }
 }
 
-@keyframes scanline {
-  0% {
-    transform: translateY(-100%);
-  }
-  100% {
-    transform: translateY(100vh);
-  }
-}
-
+/* Data stream */
 @keyframes data-stream {
   0% {
     background-position: 0 0;
@@ -227,6 +298,7 @@ All colors MUST be HSL.
   }
 }
 
+/* Morph */
 @keyframes morph {
   0%, 100% {
     border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
@@ -236,6 +308,7 @@ All colors MUST be HSL.
   }
 }
 
+/* Orbit */
 @keyframes orbit {
   from {
     transform: rotate(0deg) translateX(100px) rotate(0deg);
@@ -245,6 +318,7 @@ All colors MUST be HSL.
   }
 }
 
+/* Wave */
 @keyframes wave {
   0%, 100% {
     transform: translateY(0);
@@ -254,6 +328,7 @@ All colors MUST be HSL.
   }
 }
 
+/* Electric */
 @keyframes electric {
   0%, 100% {
     opacity: 1;
@@ -265,6 +340,7 @@ All colors MUST be HSL.
   }
 }
 
+/* Cyber glitch */
 @keyframes cyber-glitch {
   0% {
     clip-path: inset(40% 0 61% 0);
@@ -291,6 +367,46 @@ All colors MUST be HSL.
     transform: translate(2px, 0);
   }
 }
+
+/* Aurora effect */
+@keyframes aurora {
+  0% {
+    background-position: 0% 50%;
+    transform: rotate(0deg);
+  }
+  50% {
+    background-position: 100% 50%;
+    transform: rotate(180deg);
+  }
+  100% {
+    background-position: 0% 50%;
+    transform: rotate(360deg);
+  }
+}
+
+/* Text glow pulse */
+@keyframes text-glow-pulse {
+  0%, 100% {
+    text-shadow: 0 0 10px currentColor, 0 0 20px currentColor;
+  }
+  50% {
+    text-shadow: 0 0 20px currentColor, 0 0 40px currentColor, 0 0 60px currentColor;
+  }
+}
+
+/* Card hover glow */
+@keyframes card-glow {
+  0%, 100% {
+    box-shadow: 0 0 10px hsla(180, 100%, 50%, 0.1);
+  }
+  50% {
+    box-shadow: 0 0 30px hsla(180, 100%, 50%, 0.3), 0 0 60px hsla(180, 100%, 50%, 0.1);
+  }
+}
+
+/* ============================================
+   ANIMATION UTILITY CLASSES
+   ============================================ */
 
 .animate-pulse-glow {
   animation: pulse-glow 3s ease-in-out infinite;
@@ -329,7 +445,7 @@ All colors MUST be HSL.
 }
 
 .animate-spin-slow {
-  animation: spin-slow 3s linear infinite;
+  animation: spin-slow 8s linear infinite;
 }
 
 .animate-shimmer {
@@ -385,6 +501,14 @@ All colors MUST be HSL.
   animation: electric 0.1s steps(1) infinite;
 }
 
+.animate-aurora {
+  animation: aurora 15s ease-in-out infinite;
+}
+
+/* ============================================
+   HOVER & INTERACTION EFFECTS
+   ============================================ */
+
 .hover-lift {
   transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
@@ -393,41 +517,70 @@ All colors MUST be HSL.
   transform: translateY(-8px);
 }
 
-.bg-glow-gradient {
-  background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--accent)) 100%);
-  background-size: 200% 200%;
-  animation: gradient-shift 5s ease infinite;
+.hover-scale {
+  transition: transform 0.3s ease;
 }
+
+.hover-scale:hover {
+  transform: scale(1.05);
+}
+
+.hover-glow {
+  transition: all 0.3s ease;
+}
+
+.hover-glow:hover {
+  box-shadow: 0 0 30px hsla(180, 100%, 50%, 0.4);
+}
+
+/* ============================================
+   GLASS MORPHISM STYLES
+   ============================================ */
 
 .glass-panel {
   background: linear-gradient(
     135deg,
-    hsla(222, 40%, 8%, 0.7) 0%,
-    hsla(222, 40%, 6%, 0.5) 100%
+    hsla(222, 40%, 8%, 0.8) 0%,
+    hsla(222, 40%, 6%, 0.6) 100%
   );
   backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border: 1px solid hsla(180, 100%, 50%, 0.1);
   transition: all 0.3s ease;
 }
 
 .glass-panel:hover {
-  border-color: hsla(180, 100%, 50%, 0.3);
-  box-shadow: 0 8px 32px 0 rgba(0, 255, 255, 0.1);
+  border-color: hsla(180, 100%, 50%, 0.25);
+  box-shadow: 0 8px 32px hsla(0, 0%, 0%, 0.3), 0 0 20px hsla(180, 100%, 50%, 0.1);
 }
 
 .glass-ultra {
   background: linear-gradient(
     135deg,
-    hsla(222, 40%, 10%, 0.85) 0%,
-    hsla(222, 40%, 6%, 0.65) 100%
+    hsla(222, 40%, 10%, 0.9) 0%,
+    hsla(222, 40%, 6%, 0.7) 100%
   );
   backdrop-filter: blur(40px) saturate(180%);
+  -webkit-backdrop-filter: blur(40px) saturate(180%);
   border: 1px solid hsla(180, 100%, 50%, 0.15);
   box-shadow: 
     0 0 0 1px hsla(180, 100%, 50%, 0.05),
-    0 8px 32px hsla(0, 0%, 0%, 0.3),
+    0 8px 32px hsla(0, 0%, 0%, 0.4),
     inset 0 1px 0 hsla(180, 100%, 90%, 0.05);
 }
+
+.glass-ultra:hover {
+  border-color: hsla(180, 100%, 50%, 0.3);
+  box-shadow: 
+    0 0 0 1px hsla(180, 100%, 50%, 0.1),
+    0 16px 48px hsla(0, 0%, 0%, 0.5),
+    0 0 30px hsla(180, 100%, 50%, 0.15),
+    inset 0 1px 0 hsla(180, 100%, 90%, 0.1);
+}
+
+/* ============================================
+   GLOW & BORDER EFFECTS
+   ============================================ */
 
 .glow-border {
   border: 1px solid hsl(var(--glow-cyan));
@@ -435,14 +588,14 @@ All colors MUST be HSL.
 }
 
 .glow-border-hover {
-  transition: all 0.3s ease;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
   border: 1px solid hsla(180, 100%, 50%, 0.1);
 }
 
 .glow-border-hover:hover {
   border-color: hsl(var(--glow-cyan));
-  box-shadow: 0 0 20px hsla(180, 100%, 50%, 0.3);
-  transform: translateY(-2px);
+  box-shadow: 0 0 30px hsla(180, 100%, 50%, 0.4), 0 0 60px hsla(180, 100%, 50%, 0.1);
+  transform: translateY(-3px);
 }
 
 .text-glow {
@@ -456,8 +609,53 @@ All colors MUST be HSL.
     0 0 40px hsl(var(--glow-cyan));
 }
 
+.text-glow-purple {
+  text-shadow: 0 0 20px hsl(var(--glow-purple));
+}
+
+/* Cyber glow effect for buttons */
+.cyber-glow {
+  position: relative;
+  overflow: hidden;
+}
+
+.cyber-glow::before {
+  content: '';
+  position: absolute;
+  inset: -2px;
+  background: linear-gradient(90deg, 
+    hsl(var(--primary)), 
+    hsl(var(--accent)), 
+    hsl(var(--primary)));
+  background-size: 200% 100%;
+  animation: gradient-shift 3s linear infinite;
+  border-radius: inherit;
+  z-index: -1;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.cyber-glow:hover::before {
+  opacity: 0.5;
+  filter: blur(8px);
+}
+
+/* ============================================
+   BACKGROUND EFFECTS
+   ============================================ */
+
+.bg-glow-gradient {
+  background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--accent)) 100%);
+  background-size: 200% 200%;
+  animation: gradient-shift 5s ease infinite;
+}
+
 .bg-space-gradient {
-  background: linear-gradient(180deg, hsl(var(--space-deep)) 0%, hsl(var(--background)) 50%, hsl(var(--space-light)) 100%);
+  background: linear-gradient(180deg, 
+    hsl(var(--space-deep)) 0%, 
+    hsl(var(--background)) 50%, 
+    hsl(var(--space-light)) 100%
+  );
 }
 
 .bg-cyber-grid {
@@ -477,6 +675,10 @@ All colors MUST be HSL.
   background-size: 100% 20px;
   animation: data-stream 2s linear infinite;
 }
+
+/* ============================================
+   STAT & CARD EFFECTS
+   ============================================ */
 
 .stat-card {
   position: relative;
@@ -542,7 +744,10 @@ All colors MUST be HSL.
   opacity: 0.5;
 }
 
-/* 3D perspective effects */
+/* ============================================
+   3D PERSPECTIVE EFFECTS
+   ============================================ */
+
 .perspective-1000 {
   perspective: 1000px;
 }
@@ -555,10 +760,19 @@ All colors MUST be HSL.
   backface-visibility: hidden;
 }
 
-/* Responsive mobile improvements */
+/* ============================================
+   RESPONSIVE OPTIMIZATIONS
+   ============================================ */
+
 @media (max-width: 768px) {
   .glass-panel {
     backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+  }
+  
+  .glass-ultra {
+    backdrop-filter: blur(20px) saturate(150%);
+    -webkit-backdrop-filter: blur(20px) saturate(150%);
   }
   
   .animate-float-3d {
@@ -570,7 +784,7 @@ All colors MUST be HSL.
   }
 }
 
-/* Touch-friendly tap highlights */
+/* Touch-friendly highlights */
 @media (hover: none) {
   .glow-border-hover:active {
     border-color: hsl(var(--glow-cyan));
@@ -589,6 +803,41 @@ All colors MUST be HSL.
   }
 }
 
+/* ============================================
+   CUSTOM SCROLLBAR
+   ============================================ */
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: hsl(var(--background));
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsla(180, 100%, 50%, 0.3);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsla(180, 100%, 50%, 0.5);
+}
+
+/* ============================================
+   SELECTION STYLES
+   ============================================ */
+
+::selection {
+  background: hsla(180, 100%, 50%, 0.3);
+  color: hsl(var(--foreground));
+}
+
+/* ============================================
+   BASE STYLES
+   ============================================ */
+
 @layer base {
   * {
     @apply border-border;
@@ -596,5 +845,19 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
   }
+  
+  /* Smooth focus states */
+  *:focus-visible {
+    @apply outline-none ring-2 ring-primary ring-offset-2 ring-offset-background;
+  }
+}
+
+/* ============================================
+   UTILITY OVERRIDES
+   ============================================ */
+
+.rounded-inherit {
+  border-radius: inherit;
 }

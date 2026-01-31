@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mic, MicOff, Send, X, MessageCircle, Volume2, VolumeX, Loader2, Users, Wifi } from 'lucide-react';
+import { Mic, MicOff, Send, X, MessageCircle, Volume2, VolumeX, Loader2, Users, Wifi, Lock, LogIn } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -61,13 +61,14 @@ interface Message {
 interface VoiceChatProps {
   isOpen: boolean;
   onClose: () => void;
+  onAuthRequired?: () => void;
 }
 
-const VoiceChat = ({ isOpen, onClose }: VoiceChatProps) => {
+const VoiceChat = ({ isOpen, onClose, onAuthRequired }: VoiceChatProps) => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 'welcome',
-      content: 'Welcome to TerraPulse Global Chat! Discuss environmental observations and share data in real-time.',
+      content: 'Welcome to TerraPulse Global Chat! Sign in to participate in discussions.',
       sender: 'system',
       timestamp: new Date(),
     }
@@ -79,9 +80,43 @@ const VoiceChat = ({ isOpen, onClose }: VoiceChatProps) => {
   const [isConnected, setIsConnected] = useState(false);
   const [onlineCount, setOnlineCount] = useState(Math.floor(Math.random() * 500) + 100);
   const [isSending, setIsSending] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [currentUser, setCurrentUser] = useState<{ id: string; email?: string; username?: string } | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<ISpeechRecognition | null>(null);
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+
+  // Check authentication status
+  useEffect(() => {
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setIsAuthenticated(!!session);
+      if (session?.user) {
+        setCurrentUser({
+          id: session.user.id,
+          email: session.user.email,
+          username: session.user.user_metadata?.username || session.user.email?.split('@')[0]
+        });
+      }
+    };
+
+    checkAuth();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      setIsAuthenticated(!!session);
+      if (session?.user) {
+        setCurrentUser({
+          id: session.user.id,
+          email: session.user.email,
+          username: session.user.user_metadata?.username || session.user.email?.split('@')[0]
+        });
+      } else {
+        setCurrentUser(null);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   // Fetch existing messages and setup realtime subscription
   useEffect(() => {
@@ -103,7 +138,7 @@ const VoiceChat = ({ isOpen, onClose }: VoiceChatProps) => {
         const formattedMessages: Message[] = data.map(msg => ({
           id: msg.id,
           content: msg.content,
-          sender: 'other' as const,
+          sender: msg.user_id === currentUser?.id ? 'user' : 'other',
           timestamp: new Date(msg.created_at),
           username: msg.username
         }));
@@ -124,18 +159,18 @@ const VoiceChat = ({ isOpen, onClose }: VoiceChatProps) => {
           table: 'chat_messages'
         },
         (payload) => {
-          const newMsg = payload.new as { id: string; content: string; username: string; created_at: string };
+          const newMsg = payload.new as { id: string; content: string; username: string; created_at: string; user_id: string };
           const message: Message = {
             id: newMsg.id,
             content: newMsg.content,
-            sender: 'other',
+            sender: newMsg.user_id === currentUser?.id ? 'user' : 'other',
             timestamp: new Date(newMsg.created_at),
             username: newMsg.username
           };
           setMessages(prev => [...prev, message]);
           
-          // Speak incoming message if voice is enabled
-          if (isVoiceEnabled && 'speechSynthesis' in window) {
+          // Speak incoming message if voice is enabled and not from current user
+          if (isVoiceEnabled && newMsg.user_id !== currentUser?.id && 'speechSynthesis' in window) {
             const utterance = new SpeechSynthesisUtterance(`${newMsg.username} says: ${newMsg.content}`);
             utterance.rate = 1.1;
             window.speechSynthesis.speak(utterance);
@@ -148,7 +183,7 @@ const VoiceChat = ({ isOpen, onClose }: VoiceChatProps) => {
 
     // Simulate online users
     const interval = setInterval(() => {
-      setOnlineCount(prev => prev + Math.floor(Math.random() * 10) - 5);
+      setOnlineCount(prev => Math.max(50, prev + Math.floor(Math.random() * 10) - 5));
     }, 5000);
 
     return () => {
@@ -157,7 +192,7 @@ const VoiceChat = ({ isOpen, onClose }: VoiceChatProps) => {
         supabase.removeChannel(channelRef.current);
       }
     };
-  }, [isOpen, isVoiceEnabled]);
+  }, [isOpen, isVoiceEnabled, currentUser?.id]);
 
   // Auto-scroll to bottom
   useEffect(() => {
@@ -194,6 +229,12 @@ const VoiceChat = ({ isOpen, onClose }: VoiceChatProps) => {
   }, []);
 
   const toggleRecording = useCallback(() => {
+    if (!isAuthenticated) {
+      toast.error('Please sign in to use voice input');
+      onAuthRequired?.();
+      return;
+    }
+
     if (!recognitionRef.current) {
       toast.error('Speech recognition not supported in your browser');
       return;
@@ -206,7 +247,7 @@ const VoiceChat = ({ isOpen, onClose }: VoiceChatProps) => {
       recognitionRef.current.start();
       setIsRecording(true);
     }
-  }, [isRecording]);
+  }, [isRecording, isAuthenticated, onAuthRequired]);
 
   const speakMessage = useCallback((text: string) => {
     if (!isVoiceEnabled || !('speechSynthesis' in window)) return;
@@ -223,9 +264,17 @@ const VoiceChat = ({ isOpen, onClose }: VoiceChatProps) => {
   const sendMessage = useCallback(async () => {
     if (!inputValue.trim() || isSending) return;
 
+    if (!isAuthenticated) {
+      toast.error('Please sign in to send messages');
+      onAuthRequired?.();
+      return;
+    }
+
+    if (!currentUser) return;
+
     setIsSending(true);
     const messageContent = inputValue.trim();
-    const username = `Observer_${Math.floor(Math.random() * 9999)}`;
+    const username = currentUser.username || `User_${currentUser.id.slice(0, 4)}`;
 
     // Optimistic update - show message immediately
     const tempId = `temp-${Date.now()}`;
@@ -244,7 +293,8 @@ const VoiceChat = ({ isOpen, onClose }: VoiceChatProps) => {
         .from('chat_messages')
         .insert({
           content: messageContent,
-          username: username
+          username: username,
+          user_id: currentUser.id
         });
 
       if (error) {
@@ -253,8 +303,6 @@ const VoiceChat = ({ isOpen, onClose }: VoiceChatProps) => {
         // Remove optimistic message on error
         setMessages(prev => prev.filter(m => m.id !== tempId));
         setInputValue(messageContent);
-      } else {
-        toast.success('Message sent!');
       }
     } catch (err) {
       console.error('Error:', err);
@@ -264,7 +312,7 @@ const VoiceChat = ({ isOpen, onClose }: VoiceChatProps) => {
     } finally {
       setIsSending(false);
     }
-  }, [inputValue, isSending]);
+  }, [inputValue, isSending, isAuthenticated, currentUser, onAuthRequired]);
 
   if (!isOpen) return null;
 
@@ -358,35 +406,46 @@ const VoiceChat = ({ isOpen, onClose }: VoiceChatProps) => {
 
           {/* Input */}
           <div className="p-4 border-t border-border/50 bg-card/50">
-            <div className="flex gap-2">
-              <Button
-                variant={isRecording ? "destructive" : "outline"}
-                size="icon"
-                onClick={toggleRecording}
-                className={`shrink-0 ${isRecording ? 'animate-pulse' : ''}`}
-              >
-                {isRecording ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
-              </Button>
-              <Input
-                value={inputValue}
-                onChange={(e) => setInputValue(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage()}
-                placeholder={isRecording ? "Listening..." : "Type or speak..."}
-                className="bg-background/50 border-border/50"
-                disabled={isSending}
-              />
+            {isAuthenticated ? (
+              <div className="flex gap-2">
+                <Button
+                  variant={isRecording ? "destructive" : "outline"}
+                  size="icon"
+                  onClick={toggleRecording}
+                  className={`shrink-0 ${isRecording ? 'animate-pulse' : ''}`}
+                >
+                  {isRecording ? <MicOff className="w-4 h-4" /> : <Mic className="w-4 h-4" />}
+                </Button>
+                <Input
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && sendMessage()}
+                  placeholder={isRecording ? "Listening..." : "Type or speak..."}
+                  className="bg-background/50 border-border/50"
+                  disabled={isSending}
+                />
+                <Button 
+                  onClick={sendMessage} 
+                  className="shrink-0 gap-2"
+                  disabled={isSending || !inputValue.trim()}
+                >
+                  {isSending ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Send className="w-4 h-4" />
+                  )}
+                </Button>
+              </div>
+            ) : (
               <Button 
-                onClick={sendMessage} 
-                className="shrink-0 gap-2"
-                disabled={isSending || !inputValue.trim()}
+                onClick={onAuthRequired} 
+                className="w-full gap-2"
+                variant="outline"
               >
-                {isSending ? (
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                ) : (
-                  <Send className="w-4 h-4" />
-                )}
+                <LogIn className="w-4 h-4" />
+                Sign in to chat
               </Button>
-            </div>
+            )}
           </div>
         </Card>
       </motion.div>
