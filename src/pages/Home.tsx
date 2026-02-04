@@ -133,10 +133,10 @@ const Home = () => {
 
   return (
     <div className="min-h-screen bg-space-gradient relative overflow-x-hidden">
-      {/* Background effects */}
-      <div className="fixed inset-0 bg-cyber-grid pointer-events-none opacity-20" />
+      {/* Background effects - reduced for performance */}
+      <div className="fixed inset-0 bg-cyber-grid pointer-events-none opacity-10" />
       <Suspense fallback={null}>
-        <ParticleField className="fixed inset-0 z-0" particleCount={60} speed={0.2} />
+        <ParticleField className="fixed inset-0 z-0" particleCount={30} speed={0.15} connectDistance={80} interactive={false} />
       </Suspense>
 
       <Navigation />

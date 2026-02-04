@@ -2,10 +2,10 @@ import { useEffect, useState, useCallback, memo, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, Popup, useMap, Circle, LayersControl } from 'react-leaflet';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { supabase } from '@/integrations/supabase/client';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import AnomalyConnections from './AnomalyConnections';
 import { 
   AlertTriangle, 
   Thermometer, 
@@ -14,7 +14,6 @@ import {
   Activity,
   Flame,
   Zap,
-  Eye,
   Clock,
   MapPin
 } from 'lucide-react';
@@ -45,8 +44,8 @@ interface LeafletMapProps {
   filterSeverity?: string;
 }
 
-// Custom icon creator
-const createCustomIcon = (severity: string) => {
+// Custom icon creator with 3D-like effects
+const createCustomIcon = (severity: string, isAnimated: boolean = true) => {
   const colors: Record<string, string> = {
     critical: '#ef4444',
     high: '#f97316',
@@ -56,27 +55,66 @@ const createCustomIcon = (severity: string) => {
   const color = colors[severity.toLowerCase()] || colors.low;
   
   return L.divIcon({
-    className: 'custom-marker',
+    className: 'custom-marker-3d',
     html: `
-      <div style="
-        width: 24px;
-        height: 24px;
-        background: ${color};
-        border: 3px solid white;
-        border-radius: 50%;
-        box-shadow: 0 0 20px ${color}, 0 4px 8px rgba(0,0,0,0.3);
-        animation: pulse 2s infinite;
-      "></div>
+      <div class="marker-3d-container" style="position: relative; width: 32px; height: 32px;">
+        <!-- Outer glow ring -->
+        <div style="
+          position: absolute;
+          inset: -4px;
+          border-radius: 50%;
+          background: radial-gradient(circle, ${color}40 0%, transparent 70%);
+          ${isAnimated ? 'animation: pulse-glow 2s ease-in-out infinite;' : ''}
+        "></div>
+        <!-- Middle pulse ring -->
+        <div style="
+          position: absolute;
+          inset: 0;
+          border: 2px solid ${color};
+          border-radius: 50%;
+          opacity: 0.5;
+          ${isAnimated ? 'animation: pulse-ring 2s ease-out infinite;' : ''}
+        "></div>
+        <!-- Core marker -->
+        <div style="
+          position: absolute;
+          inset: 4px;
+          background: ${color};
+          border: 3px solid white;
+          border-radius: 50%;
+          box-shadow: 0 0 20px ${color}, 0 4px 8px rgba(0,0,0,0.3), inset 0 -2px 4px rgba(0,0,0,0.2);
+          ${isAnimated ? 'animation: pulse-core 2s ease-in-out infinite;' : ''}
+        "></div>
+        <!-- Inner highlight -->
+        <div style="
+          position: absolute;
+          top: 6px;
+          left: 8px;
+          width: 8px;
+          height: 8px;
+          background: rgba(255,255,255,0.4);
+          border-radius: 50%;
+          filter: blur(2px);
+        "></div>
+      </div>
       <style>
-        @keyframes pulse {
-          0%, 100% { transform: scale(1); opacity: 1; }
-          50% { transform: scale(1.2); opacity: 0.8; }
+        @keyframes pulse-glow {
+          0%, 100% { transform: scale(1); opacity: 0.6; }
+          50% { transform: scale(1.3); opacity: 0.3; }
+        }
+        @keyframes pulse-ring {
+          0% { transform: scale(1); opacity: 0.5; }
+          100% { transform: scale(2); opacity: 0; }
+        }
+        @keyframes pulse-core {
+          0%, 100% { transform: scale(1); box-shadow: 0 0 20px ${color}, 0 4px 8px rgba(0,0,0,0.3); }
+          50% { transform: scale(1.1); box-shadow: 0 0 30px ${color}, 0 4px 12px rgba(0,0,0,0.4); }
         }
       </style>
     `,
-    iconSize: [24, 24],
-    iconAnchor: [12, 12],
-    popupAnchor: [0, -12],
+    iconSize: [32, 32],
+    iconAnchor: [16, 16],
+    popupAnchor: [0, -16],
   });
 };
 
@@ -140,53 +178,54 @@ const AnomalyMarker = memo(({
 
   return (
     <>
-      {/* Animated pulse circle */}
+      {/* Outer animated pulse circle */}
       <Circle
         center={position}
         radius={getSeverityRadius(anomaly.severity)}
         pathOptions={{
           color: color,
           fillColor: color,
-          fillOpacity: 0.15,
+          fillOpacity: 0.1,
           weight: 1,
+          dashArray: '5, 5',
         }}
       />
       {/* Inner glow circle */}
       <Circle
         center={position}
-        radius={getSeverityRadius(anomaly.severity) * 0.5}
+        radius={getSeverityRadius(anomaly.severity) * 0.4}
         pathOptions={{
           color: color,
           fillColor: color,
-          fillOpacity: 0.25,
+          fillOpacity: 0.2,
           weight: 0,
         }}
       />
       {/* Marker */}
       <Marker
         position={position}
-        icon={createCustomIcon(anomaly.severity)}
+        icon={createCustomIcon(anomaly.severity, true)}
         eventHandlers={{ click: onClick }}
       >
         <Popup className="anomaly-popup">
-          <div className="p-3 min-w-[250px] bg-background/95 backdrop-blur-sm rounded-lg">
-            <div className="flex items-center gap-2 mb-2">
+          <div className="p-3 min-w-[280px] bg-background/95 backdrop-blur-sm rounded-lg border border-border">
+            <div className="flex items-center gap-2 mb-3">
               <div className="p-2 rounded-lg" style={{ backgroundColor: `${color}20`, color: color }}>
                 {getTypeIcon(anomaly.anomaly_type)}
               </div>
-              <div>
+              <div className="flex-1">
                 <h4 className="font-bold text-foreground">{anomaly.name}</h4>
                 <Badge 
                   variant="outline" 
-                  className="text-[10px]"
+                  className="text-[10px] mt-1"
                   style={{ borderColor: color, color: color }}
                 >
                   {anomaly.severity.toUpperCase()}
                 </Badge>
               </div>
             </div>
-            <p className="text-sm text-muted-foreground mb-2">{anomaly.description}</p>
-            <div className="flex items-center gap-4 text-xs text-muted-foreground">
+            <p className="text-sm text-muted-foreground mb-3">{anomaly.description}</p>
+            <div className="grid grid-cols-2 gap-2 text-xs text-muted-foreground">
               <span className="flex items-center gap-1">
                 <MapPin className="w-3 h-3" />
                 {anomaly.latitude.toFixed(2)}, {anomaly.longitude.toFixed(2)}
@@ -196,7 +235,7 @@ const AnomalyMarker = memo(({
                 {new Date(anomaly.detected_at).toLocaleDateString()}
               </span>
             </div>
-            <div className="flex items-center gap-2 mt-2">
+            <div className="flex items-center gap-2 mt-3">
               <Badge variant={anomaly.status === 'active' ? 'destructive' : 'secondary'} className="text-[10px]">
                 {anomaly.status}
               </Badge>
@@ -213,6 +252,44 @@ const AnomalyMarker = memo(({
 
 AnomalyMarker.displayName = 'AnomalyMarker';
 
+// Generate many mock anomalies for demonstration
+const generateMockAnomalies = (): Anomaly[] => {
+  const types = ['weather', 'seismic', 'temperature', 'pollution', 'volcanic', 'flood', 'magnetic', 'drought'];
+  const severities = ['critical', 'high', 'medium', 'low'];
+  const statuses = ['active', 'monitoring', 'resolved'];
+  
+  const baseAnomalies: Anomaly[] = [
+    { id: '1', name: 'Tropical Storm Formation', description: 'Unusual atmospheric pressure changes detected', latitude: 25.7617, longitude: -80.1918, severity: 'critical', anomaly_type: 'weather', status: 'active', detected_at: new Date().toISOString() },
+    { id: '2', name: 'Seismic Activity Alert', description: 'Minor tremors detected in fault zone', latitude: 35.6762, longitude: 139.6503, severity: 'high', anomaly_type: 'seismic', status: 'active', detected_at: new Date().toISOString() },
+    { id: '3', name: 'Ocean Temperature Anomaly', description: 'Above average ocean surface temperature', latitude: -33.8688, longitude: 151.2093, severity: 'medium', anomaly_type: 'temperature', status: 'monitoring', detected_at: new Date().toISOString() },
+    { id: '4', name: 'Air Quality Warning', description: 'Elevated particulate matter detected', latitude: 51.5074, longitude: -0.1278, severity: 'high', anomaly_type: 'pollution', status: 'active', detected_at: new Date().toISOString() },
+    { id: '5', name: 'Volcanic Activity', description: 'Increased volcanic emissions observed', latitude: -8.4095, longitude: 115.1889, severity: 'critical', anomaly_type: 'volcanic', status: 'active', detected_at: new Date().toISOString() },
+    { id: '6', name: 'Drought Conditions', description: 'Extended dry period affecting region', latitude: -25.2744, longitude: 133.7751, severity: 'medium', anomaly_type: 'drought', status: 'monitoring', detected_at: new Date().toISOString() },
+    { id: '7', name: 'Flooding Risk', description: 'Heavy rainfall causing river levels to rise', latitude: 13.7563, longitude: 100.5018, severity: 'high', anomaly_type: 'flood', status: 'active', detected_at: new Date().toISOString() },
+    { id: '8', name: 'Geomagnetic Storm', description: 'Solar wind disturbance affecting satellites', latitude: 64.1466, longitude: -21.9426, severity: 'low', anomaly_type: 'magnetic', status: 'monitoring', detected_at: new Date().toISOString() },
+    { id: '9', name: 'Wildfire Alert', description: 'High fire danger due to dry conditions', latitude: 34.0522, longitude: -118.2437, severity: 'critical', anomaly_type: 'fire', status: 'active', detected_at: new Date().toISOString() },
+    { id: '10', name: 'Glacier Melt', description: 'Accelerated ice loss detected', latitude: 78.2232, longitude: 15.6469, severity: 'medium', anomaly_type: 'climate', status: 'monitoring', detected_at: new Date().toISOString() },
+  ];
+
+  // Generate additional random anomalies
+  const additionalAnomalies: Anomaly[] = [];
+  for (let i = 11; i <= 100; i++) {
+    additionalAnomalies.push({
+      id: String(i),
+      name: `Anomaly Zone ${i}`,
+      description: `Environmental anomaly detected in monitoring zone ${i}`,
+      latitude: (Math.random() * 140) - 70,
+      longitude: (Math.random() * 360) - 180,
+      severity: severities[Math.floor(Math.random() * severities.length)],
+      anomaly_type: types[Math.floor(Math.random() * types.length)],
+      status: statuses[Math.floor(Math.random() * statuses.length)],
+      detected_at: new Date(Date.now() - Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString(),
+    });
+  }
+
+  return [...baseAnomalies, ...additionalAnomalies];
+};
+
 const LeafletMap = ({ onAnomalySelect, selectedAnomaly, filterSeverity = 'all' }: LeafletMapProps) => {
   const [anomalies, setAnomalies] = useState<Anomaly[]>([]);
   const [mapCenter, setMapCenter] = useState<[number, number]>([20, 0]);
@@ -227,22 +304,11 @@ const LeafletMap = ({ onAnomalySelect, selectedAnomaly, filterSeverity = 'all' }
         .select('*')
         .order('detected_at', { ascending: false });
 
-      if (!error && data) {
+      if (!error && data && data.length > 0) {
         setAnomalies(data);
       } else {
-        // Mock data
-        setAnomalies([
-          { id: '1', name: 'Tropical Storm Formation', description: 'Unusual atmospheric pressure changes detected indicating potential tropical cyclone development', latitude: 25.7617, longitude: -80.1918, severity: 'critical', anomaly_type: 'weather', status: 'active', detected_at: new Date().toISOString() },
-          { id: '2', name: 'Seismic Activity Alert', description: 'Series of minor tremors detected along the Pacific Ring of Fire fault zone', latitude: 35.6762, longitude: 139.6503, severity: 'high', anomaly_type: 'seismic', status: 'active', detected_at: new Date().toISOString() },
-          { id: '3', name: 'Ocean Temperature Anomaly', description: 'Surface temperatures 3°C above seasonal average indicating potential coral bleaching', latitude: -33.8688, longitude: 151.2093, severity: 'medium', anomaly_type: 'temperature', status: 'monitoring', detected_at: new Date().toISOString() },
-          { id: '4', name: 'Air Quality Warning', description: 'PM2.5 levels exceeding safe thresholds due to industrial emissions', latitude: 51.5074, longitude: -0.1278, severity: 'high', anomaly_type: 'pollution', status: 'active', detected_at: new Date().toISOString() },
-          { id: '5', name: 'Volcanic Activity', description: 'Increased sulfur dioxide emissions and seismic tremors near active volcano', latitude: -8.4095, longitude: 115.1889, severity: 'critical', anomaly_type: 'volcanic', status: 'active', detected_at: new Date().toISOString() },
-          { id: '6', name: 'Drought Conditions', description: 'Extended dry period affecting agricultural regions', latitude: -25.2744, longitude: 133.7751, severity: 'medium', anomaly_type: 'drought', status: 'monitoring', detected_at: new Date().toISOString() },
-          { id: '7', name: 'Flooding Risk', description: 'Heavy monsoon rainfall causing river levels to rise dangerously', latitude: 13.7563, longitude: 100.5018, severity: 'high', anomaly_type: 'flood', status: 'active', detected_at: new Date().toISOString() },
-          { id: '8', name: 'Geomagnetic Storm', description: 'Solar wind disturbance affecting satellite communications', latitude: 64.1466, longitude: -21.9426, severity: 'low', anomaly_type: 'magnetic', status: 'monitoring', detected_at: new Date().toISOString() },
-          { id: '9', name: 'Wildfire Alert', description: 'High fire danger due to dry conditions and strong winds', latitude: 34.0522, longitude: -118.2437, severity: 'critical', anomaly_type: 'fire', status: 'active', detected_at: new Date().toISOString() },
-          { id: '10', name: 'Glacier Melt Acceleration', description: 'Accelerated ice loss detected in polar region', latitude: 78.2232, longitude: 15.6469, severity: 'medium', anomaly_type: 'climate', status: 'monitoring', detected_at: new Date().toISOString() },
-        ]);
+        // Use generated mock data with many points
+        setAnomalies(generateMockAnomalies());
       }
     };
 
@@ -250,7 +316,7 @@ const LeafletMap = ({ onAnomalySelect, selectedAnomaly, filterSeverity = 'all' }
 
     // Real-time subscription
     const channel = supabase
-      .channel('map-anomalies')
+      .channel('map-anomalies-live')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'anomalies' }, () => {
         fetchAnomalies();
       })
@@ -319,9 +385,18 @@ const LeafletMap = ({ onAnomalySelect, selectedAnomaly, filterSeverity = 'all' }
           background: hsl(var(--card) / 0.8) !important;
           color: hsl(var(--muted-foreground)) !important;
         }
-        .custom-marker {
+        .custom-marker-3d {
           background: transparent !important;
           border: none !important;
+        }
+        .anomaly-connection {
+          stroke-dashoffset: 0;
+          animation: dash-flow 20s linear infinite;
+        }
+        @keyframes dash-flow {
+          to {
+            stroke-dashoffset: -1000;
+          }
         }
       `}</style>
 
@@ -333,6 +408,9 @@ const LeafletMap = ({ onAnomalySelect, selectedAnomaly, filterSeverity = 'all' }
         ref={mapRef}
       >
         <MapController center={mapCenter} zoom={mapZoom} />
+        
+        {/* Animated connections between anomalies */}
+        <AnomalyConnections anomalies={filteredAnomalies} />
         
         <LayersControl position="topright">
           {/* Base Layers */}
@@ -363,13 +441,6 @@ const LeafletMap = ({ onAnomalySelect, selectedAnomaly, filterSeverity = 'all' }
               url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
             />
           </LayersControl.BaseLayer>
-
-          <LayersControl.BaseLayer name="Watercolor">
-            <TileLayer
-              attribution='&copy; <a href="http://stamen.com">Stamen Design</a>'
-              url="https://tiles.stadiamaps.com/tiles/stamen_watercolor/{z}/{x}/{y}.jpg"
-            />
-          </LayersControl.BaseLayer>
         </LayersControl>
 
         {/* Anomaly markers */}
@@ -397,6 +468,20 @@ const LeafletMap = ({ onAnomalySelect, selectedAnomaly, filterSeverity = 'all' }
         <div className="absolute top-0 right-0 w-16 h-16 border-t-2 border-r-2 border-primary/40" />
         <div className="absolute bottom-0 left-0 w-16 h-16 border-b-2 border-l-2 border-primary/40" />
         <div className="absolute bottom-0 right-0 w-16 h-16 border-b-2 border-r-2 border-primary/40" />
+      </div>
+
+      {/* Stats overlay */}
+      <div className="absolute bottom-4 left-4 bg-background/80 backdrop-blur-sm rounded-lg p-3 border border-border/50">
+        <div className="flex items-center gap-4 text-xs">
+          <div className="flex items-center gap-1">
+            <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse" />
+            <span className="text-muted-foreground">{filteredAnomalies.length} Active Points</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <div className="w-2 h-2 rounded-full bg-primary animate-pulse" />
+            <span className="text-muted-foreground">Live Connections</span>
+          </div>
+        </div>
       </div>
     </div>
   );

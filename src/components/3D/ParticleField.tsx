@@ -1,4 +1,4 @@
-import { memo, useRef, useEffect, useState } from 'react';
+import { memo, useRef, useEffect } from 'react';
 
 interface ParticleFieldProps {
   className?: string;
@@ -11,11 +11,11 @@ interface ParticleFieldProps {
 
 const ParticleField = memo(({ 
   className = "",
-  particleCount = 80,
-  speed = 0.3,
+  particleCount = 40,
+  speed = 0.2,
   color = "0, 255, 255",
-  connectDistance = 120,
-  interactive = true
+  connectDistance = 100,
+  interactive = false
 }: ParticleFieldProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const mouseRef = useRef({ x: 0, y: 0 });
@@ -27,33 +27,41 @@ const ParticleField = memo(({
     size: number;
   }>>([]);
   const animationRef = useRef<number>();
+  const lastFrameRef = useRef<number>(0);
 
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d', { alpha: true });
     if (!ctx) return;
 
+    let width = 0;
+    let height = 0;
+
     const resize = () => {
-      canvas.width = canvas.offsetWidth * window.devicePixelRatio;
-      canvas.height = canvas.offsetHeight * window.devicePixelRatio;
-      ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+      const dpr = Math.min(window.devicePixelRatio, 2); // Limit DPR for performance
+      width = canvas.offsetWidth;
+      height = canvas.offsetHeight;
+      canvas.width = width * dpr;
+      canvas.height = height * dpr;
+      ctx.scale(dpr, dpr);
     };
     
     resize();
-    window.addEventListener('resize', resize);
+    window.addEventListener('resize', resize, { passive: true });
 
     // Initialize particles
     particlesRef.current = Array.from({ length: particleCount }, () => ({
-      x: Math.random() * canvas.offsetWidth,
-      y: Math.random() * canvas.offsetHeight,
+      x: Math.random() * (canvas.offsetWidth || 800),
+      y: Math.random() * (canvas.offsetHeight || 600),
       vx: (Math.random() - 0.5) * speed,
       vy: (Math.random() - 0.5) * speed,
-      size: Math.random() * 2 + 1
+      size: Math.random() * 1.5 + 0.5
     }));
 
     const handleMouseMove = (e: MouseEvent) => {
+      if (!interactive) return;
       const rect = canvas.getBoundingClientRect();
       mouseRef.current = {
         x: e.clientX - rect.left,
@@ -62,19 +70,26 @@ const ParticleField = memo(({
     };
 
     if (interactive) {
-      canvas.addEventListener('mousemove', handleMouseMove);
+      canvas.addEventListener('mousemove', handleMouseMove, { passive: true });
     }
 
-    const animate = () => {
-      const width = canvas.offsetWidth;
-      const height = canvas.offsetHeight;
-      
+    // Throttled animation for better performance
+    const animate = (timestamp: number) => {
+      // Target 30 FPS for particles (better performance)
+      if (timestamp - lastFrameRef.current < 33) {
+        animationRef.current = requestAnimationFrame(animate);
+        return;
+      }
+      lastFrameRef.current = timestamp;
+
       ctx.clearRect(0, 0, width, height);
 
       const particles = particlesRef.current;
 
       // Update and draw particles
-      particles.forEach((particle, i) => {
+      for (let i = 0; i < particles.length; i++) {
+        const particle = particles[i];
+        
         // Update position
         particle.x += particle.vx;
         particle.y += particle.vy;
@@ -85,46 +100,40 @@ const ParticleField = memo(({
         if (particle.y < 0) particle.y = height;
         if (particle.y > height) particle.y = 0;
 
-        // Interactive mouse effect
-        if (interactive) {
-          const dx = mouseRef.current.x - particle.x;
-          const dy = mouseRef.current.y - particle.y;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-          if (dist < 100) {
-            particle.x -= dx * 0.02;
-            particle.y -= dy * 0.02;
-          }
-        }
-
         // Draw particle
         ctx.beginPath();
         ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2);
-        ctx.fillStyle = `rgba(${color}, 0.8)`;
+        ctx.fillStyle = `rgba(${color}, 0.6)`;
         ctx.fill();
 
-        // Draw connections
+        // Draw connections (only check nearby particles for performance)
         for (let j = i + 1; j < particles.length; j++) {
           const other = particles[j];
           const dx = particle.x - other.x;
           const dy = particle.y - other.y;
-          const dist = Math.sqrt(dx * dx + dy * dy);
+          
+          // Quick distance check before expensive sqrt
+          if (Math.abs(dx) > connectDistance || Math.abs(dy) > connectDistance) continue;
+          
+          const distSq = dx * dx + dy * dy;
+          const maxDistSq = connectDistance * connectDistance;
 
-          if (dist < connectDistance) {
+          if (distSq < maxDistSq) {
+            const opacity = (1 - distSq / maxDistSq) * 0.2;
             ctx.beginPath();
             ctx.moveTo(particle.x, particle.y);
             ctx.lineTo(other.x, other.y);
-            const opacity = (1 - dist / connectDistance) * 0.3;
             ctx.strokeStyle = `rgba(${color}, ${opacity})`;
             ctx.lineWidth = 0.5;
             ctx.stroke();
           }
         }
-      });
+      }
 
       animationRef.current = requestAnimationFrame(animate);
     };
 
-    animate();
+    animationRef.current = requestAnimationFrame(animate);
 
     return () => {
       window.removeEventListener('resize', resize);
@@ -140,8 +149,8 @@ const ParticleField = memo(({
   return (
     <canvas
       ref={canvasRef}
-      className={`absolute inset-0 w-full h-full pointer-events-auto ${className}`}
-      style={{ opacity: 0.6 }}
+      className={`absolute inset-0 w-full h-full ${interactive ? 'pointer-events-auto' : 'pointer-events-none'} ${className}`}
+      style={{ opacity: 0.5 }}
     />
   );
 });

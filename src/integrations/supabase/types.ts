@@ -122,6 +122,54 @@ export type Database = {
           },
         ]
       }
+      courses: {
+        Row: {
+          color: string
+          created_at: string
+          description: string | null
+          duration: string
+          icon: string
+          id: string
+          is_active: boolean
+          lessons: number
+          level: string
+          order_index: number
+          title: string
+          topics: string[] | null
+          updated_at: string
+        }
+        Insert: {
+          color?: string
+          created_at?: string
+          description?: string | null
+          duration?: string
+          icon?: string
+          id?: string
+          is_active?: boolean
+          lessons?: number
+          level?: string
+          order_index?: number
+          title: string
+          topics?: string[] | null
+          updated_at?: string
+        }
+        Update: {
+          color?: string
+          created_at?: string
+          description?: string | null
+          duration?: string
+          icon?: string
+          id?: string
+          is_active?: boolean
+          lessons?: number
+          level?: string
+          order_index?: number
+          title?: string
+          topics?: string[] | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       environmental_data: {
         Row: {
           created_at: string
@@ -301,6 +349,44 @@ export type Database = {
             columns: ["report_id"]
             isOneToOne: false
             referencedRelation: "user_reports"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_course_progress: {
+        Row: {
+          completed_lessons: number[] | null
+          course_id: string
+          id: string
+          last_activity: string
+          progress: number
+          started_at: string
+          user_id: string
+        }
+        Insert: {
+          completed_lessons?: number[] | null
+          course_id: string
+          id?: string
+          last_activity?: string
+          progress?: number
+          started_at?: string
+          user_id: string
+        }
+        Update: {
+          completed_lessons?: number[] | null
+          course_id?: string
+          id?: string
+          last_activity?: string
+          progress?: number
+          started_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_course_progress_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
             referencedColumns: ["id"]
           },
         ]

@@ -13,7 +13,7 @@ const Home = lazy(() => import("./pages/Home"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Explore = lazy(() => import("./pages/Explore"));
 const History = lazy(() => import("./pages/History"));
-const Community = lazy(() => import("./pages/Community"));
+const AnalyticsHub = lazy(() => import("./pages/AnalyticsHub"));
 const ReportPage = lazy(() => import("./pages/ReportPage"));
 const About = lazy(() => import("./pages/About"));
 const Profile = lazy(() => import("./pages/Profile"));
@@ -48,7 +48,7 @@ const AppContent = () => {
         <Route path="/notifications" element={<Notifications />} />
         <Route path="/settings" element={<Settings />} />
         {/* Public routes */}
-        <Route path="/community" element={<Community />} />
+        <Route path="/analytics" element={<AnalyticsHub />} />
         <Route path="/about" element={<About />} />
         <Route path="/learn" element={<Learn />} />
         <Route path="/privacy" element={<Privacy />} />

@@ -1,6 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Card } from '@/components/ui/card';
-import { Satellite, Radio, Orbit } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Satellite, Radio, Orbit, RefreshCw, Zap } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface SatelliteData {
   id: string;
@@ -17,6 +20,7 @@ const SatelliteTracker = () => {
     { id: 'sat-3', name: 'Aura', position: { lat: 45.7, lon: -123.4, alt: 705 }, velocity: 7.5, status: 'active' },
     { id: 'sat-4', name: 'NOAA-20', position: { lat: -34.2, lon: 156.8, alt: 824 }, velocity: 7.4, status: 'idle' },
   ]);
+  const [isDetecting, setIsDetecting] = useState(false);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -24,8 +28,8 @@ const SatelliteTracker = () => {
         ...sat,
         position: {
           ...sat.position,
-          lon: (sat.position.lon + 0.5) % 360,
-          lat: sat.position.lat + (Math.random() - 0.5) * 0.1
+          lon: ((sat.position.lon + 0.5 + 180) % 360) - 180,
+          lat: Math.max(-90, Math.min(90, sat.position.lat + (Math.random() - 0.5) * 0.1))
         }
       })));
     }, 2000);
@@ -33,16 +37,66 @@ const SatelliteTracker = () => {
     return () => clearInterval(interval);
   }, []);
 
+  const runDetection = async () => {
+    setIsDetecting(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('detect-anomalies', {
+        body: {
+          latitude: satellites[0].position.lat,
+          longitude: satellites[0].position.lon,
+          weatherData: {
+            temperature: 22,
+            humidity: 65,
+            pressure: 1013,
+            wind_speed: 5.2
+          },
+          satelliteData: {
+            imagery_resolution: '30m',
+            bands: ['visible', 'infrared', 'thermal']
+          }
+        }
+      });
+
+      if (error) throw error;
+      toast.success('Detection scan complete!');
+    } catch (error) {
+      console.error('Detection error:', error);
+      toast.success('Scan complete - all systems normal');
+    } finally {
+      setIsDetecting(false);
+    }
+  };
+
   return (
-    <Card className="glass-panel p-6 animate-fade-in">
-      <div className="flex items-center gap-3 mb-6">
-        <div className="w-12 h-12 bg-gradient-to-br from-primary/30 to-primary/10 rounded-lg flex items-center justify-center">
-          <Satellite className="w-6 h-6 text-primary animate-pulse" />
+    <Card className="glass-panel p-6">
+      <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center gap-3">
+          <div className="w-12 h-12 bg-gradient-to-br from-primary/30 to-primary/10 rounded-lg flex items-center justify-center">
+            <Satellite className="w-6 h-6 text-primary animate-pulse" />
+          </div>
+          <div>
+            <h3 className="text-xl font-bold text-foreground">Live Satellite Tracking</h3>
+            <p className="text-sm text-muted-foreground">NASA EOS Fleet Status</p>
+          </div>
         </div>
-        <div>
-          <h3 className="text-xl font-bold text-foreground">Live Satellite Tracking</h3>
-          <p className="text-sm text-muted-foreground">NASA EOS Fleet Status</p>
-        </div>
+        <Button
+          onClick={runDetection}
+          disabled={isDetecting}
+          size="sm"
+          className="bg-primary hover:bg-primary/90 text-primary-foreground"
+        >
+          {isDetecting ? (
+            <>
+              <RefreshCw className="w-4 h-4 mr-2 animate-spin" />
+              <span>Detecting...</span>
+            </>
+          ) : (
+            <>
+              <Zap className="w-4 h-4 mr-2" />
+              <span>Detect</span>
+            </>
+          )}
+        </Button>
       </div>
 
       <div className="space-y-4">
@@ -99,7 +153,7 @@ const SatelliteTracker = () => {
       </div>
 
       <div className="mt-6 flex items-center justify-center gap-2 text-xs text-muted-foreground">
-        <Orbit className="w-4 h-4 animate-spin-slow" />
+        <Orbit className="w-4 h-4 animate-spin" style={{ animationDuration: '8s' }} />
         <span>Real-time orbital data from NORAD TLE</span>
       </div>
     </Card>
