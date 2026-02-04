@@ -209,6 +209,53 @@ export type Database = {
         }
         Relationships: []
       }
+      lesson_content: {
+        Row: {
+          content: Json
+          content_type: string
+          course_id: string
+          created_at: string
+          duration_minutes: number | null
+          id: string
+          lesson_number: number
+          order_index: number
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          content?: Json
+          content_type?: string
+          course_id: string
+          created_at?: string
+          duration_minutes?: number | null
+          id?: string
+          lesson_number: number
+          order_index?: number
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          content?: Json
+          content_type?: string
+          course_id?: string
+          created_at?: string
+          duration_minutes?: number | null
+          id?: string
+          lesson_number?: number
+          order_index?: number
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lesson_content_course_id_fkey"
+            columns: ["course_id"]
+            isOneToOne: false
+            referencedRelation: "courses"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           created_at: string | null

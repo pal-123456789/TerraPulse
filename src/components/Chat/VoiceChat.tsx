@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Mic, MicOff, Send, X, MessageCircle, Volume2, VolumeX, Loader2, Users, Wifi, Lock, LogIn } from 'lucide-react';
+import { Mic, MicOff, Send, X, MessageCircle, Volume2, VolumeX, Loader2, Users, Wifi, LogIn } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -64,11 +64,14 @@ interface VoiceChatProps {
   onAuthRequired?: () => void;
 }
 
+// Message expiration time (1 hour in milliseconds)
+const MESSAGE_EXPIRY_MS = 60 * 60 * 1000;
+
 const VoiceChat = ({ isOpen, onClose, onAuthRequired }: VoiceChatProps) => {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 'welcome',
-      content: 'Welcome to TerraPulse Global Chat! Sign in to participate in discussions.',
+      content: 'Welcome to TerraPulse Global Chat! Sign in to participate in discussions. Messages auto-delete after 1 hour.',
       sender: 'system',
       timestamp: new Date(),
     }
@@ -78,13 +81,14 @@ const VoiceChat = ({ isOpen, onClose, onAuthRequired }: VoiceChatProps) => {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isVoiceEnabled, setIsVoiceEnabled] = useState(true);
   const [isConnected, setIsConnected] = useState(false);
-  const [onlineCount, setOnlineCount] = useState(Math.floor(Math.random() * 500) + 100);
+  const [onlineUsers, setOnlineUsers] = useState<string[]>([]);
   const [isSending, setIsSending] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [currentUser, setCurrentUser] = useState<{ id: string; email?: string; username?: string } | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<ISpeechRecognition | null>(null);
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  const presenceChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
   // Check authentication status
   useEffect(() => {
@@ -118,14 +122,28 @@ const VoiceChat = ({ isOpen, onClose, onAuthRequired }: VoiceChatProps) => {
     return () => subscription.unsubscribe();
   }, []);
 
+  // Filter out expired messages
+  const filterExpiredMessages = useCallback((msgs: Message[]) => {
+    const now = new Date().getTime();
+    return msgs.filter(msg => {
+      if (msg.id === 'welcome') return true;
+      const msgTime = msg.timestamp.getTime();
+      return now - msgTime < MESSAGE_EXPIRY_MS;
+    });
+  }, []);
+
   // Fetch existing messages and setup realtime subscription
   useEffect(() => {
     if (!isOpen) return;
 
     const fetchMessages = async () => {
+      // Calculate cutoff time (1 hour ago)
+      const cutoffTime = new Date(Date.now() - MESSAGE_EXPIRY_MS).toISOString();
+      
       const { data, error } = await supabase
         .from('chat_messages')
         .select('*')
+        .gte('created_at', cutoffTime)
         .order('created_at', { ascending: true })
         .limit(50);
 
@@ -148,7 +166,7 @@ const VoiceChat = ({ isOpen, onClose, onAuthRequired }: VoiceChatProps) => {
 
     fetchMessages();
 
-    // Setup realtime subscription
+    // Setup realtime subscription for new messages
     channelRef.current = supabase
       .channel('chat-messages-realtime')
       .on(
@@ -181,18 +199,45 @@ const VoiceChat = ({ isOpen, onClose, onAuthRequired }: VoiceChatProps) => {
         setIsConnected(status === 'SUBSCRIBED');
       });
 
-    // Simulate online users
-    const interval = setInterval(() => {
-      setOnlineCount(prev => Math.max(50, prev + Math.floor(Math.random() * 10) - 5));
-    }, 5000);
+    // Setup presence channel for online users
+    const username = currentUser?.username || 'Anonymous';
+    presenceChannelRef.current = supabase
+      .channel('chat-presence')
+      .on('presence', { event: 'sync' }, () => {
+        const state = presenceChannelRef.current?.presenceState() || {};
+        const users = Object.values(state).flat().map((p: any) => p.username);
+        setOnlineUsers([...new Set(users)]);
+      })
+      .on('presence', { event: 'join' }, ({ newPresences }) => {
+        toast.info(`${newPresences[0]?.username || 'Someone'} joined the chat`);
+      })
+      .on('presence', { event: 'leave' }, ({ leftPresences }) => {
+        toast.info(`${leftPresences[0]?.username || 'Someone'} left the chat`);
+      })
+      .subscribe(async (status) => {
+        if (status === 'SUBSCRIBED' && isAuthenticated) {
+          await presenceChannelRef.current?.track({
+            username,
+            online_at: new Date().toISOString(),
+          });
+        }
+      });
+
+    // Auto-cleanup expired messages every minute
+    const cleanupInterval = setInterval(() => {
+      setMessages(prev => filterExpiredMessages(prev));
+    }, 60000);
 
     return () => {
-      clearInterval(interval);
+      clearInterval(cleanupInterval);
       if (channelRef.current) {
         supabase.removeChannel(channelRef.current);
       }
+      if (presenceChannelRef.current) {
+        supabase.removeChannel(presenceChannelRef.current);
+      }
     };
-  }, [isOpen, isVoiceEnabled, currentUser?.id]);
+  }, [isOpen, isVoiceEnabled, currentUser?.id, currentUser?.username, isAuthenticated, filterExpiredMessages]);
 
   // Auto-scroll to bottom
   useEffect(() => {
@@ -342,7 +387,7 @@ const VoiceChat = ({ isOpen, onClose, onAuthRequired }: VoiceChatProps) => {
                 </h3>
                 <p className="text-xs text-muted-foreground flex items-center gap-1">
                   <Users className="w-3 h-3" />
-                  {onlineCount.toLocaleString()} online
+                  {onlineUsers.length > 0 ? `${onlineUsers.length} online` : 'Connecting...'}
                 </p>
               </div>
             </div>
@@ -364,6 +409,23 @@ const VoiceChat = ({ isOpen, onClose, onAuthRequired }: VoiceChatProps) => {
               </Button>
             </div>
           </div>
+
+          {/* Online Users */}
+          {onlineUsers.length > 0 && (
+            <div className="px-4 py-2 border-b border-border/30 bg-primary/5">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-xs text-muted-foreground">Online:</span>
+                {onlineUsers.slice(0, 5).map((user, idx) => (
+                  <span key={idx} className="text-xs bg-primary/20 text-primary px-2 py-0.5 rounded-full">
+                    {user}
+                  </span>
+                ))}
+                {onlineUsers.length > 5 && (
+                  <span className="text-xs text-muted-foreground">+{onlineUsers.length - 5} more</span>
+                )}
+              </div>
+            </div>
+          )}
 
           {/* Messages */}
           <ScrollArea className="h-72 sm:h-80 p-4" ref={scrollRef}>
@@ -440,7 +502,6 @@ const VoiceChat = ({ isOpen, onClose, onAuthRequired }: VoiceChatProps) => {
               <Button 
                 onClick={onAuthRequired} 
                 className="w-full gap-2"
-                variant="outline"
               >
                 <LogIn className="w-4 h-4" />
                 Sign in to chat

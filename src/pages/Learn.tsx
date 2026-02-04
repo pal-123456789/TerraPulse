@@ -1,6 +1,6 @@
 import { useEffect, useState, useMemo, useCallback, memo } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import Navigation from "@/components/Navigation";
@@ -29,13 +29,18 @@ import {
   CloudRain,
   Snowflake,
   Sun,
+  Video,
+  X,
+  ChevronRight,
+  ArrowLeft,
 } from "lucide-react";
 import { toast } from "sonner";
 import Footer from "@/components/Footer";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import { LoadingVFX } from "@/components/3D/LoadingVFX";
 import { MotionSection } from "@/components/MotionSection";
 import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 interface Course {
   id: string;
@@ -50,9 +55,30 @@ interface Course {
   order_index: number;
 }
 
+interface LessonContent {
+  id: string;
+  course_id: string;
+  lesson_number: number;
+  title: string;
+  content_type: 'text' | 'video' | 'quiz';
+  content: {
+    description?: string;
+    key_points?: string[];
+    video_url?: string;
+    questions?: Array<{
+      question: string;
+      options: string[];
+      correct_index: number;
+    }>;
+  };
+  duration_minutes: number;
+  order_index: number;
+}
+
 interface UserProgress {
   course_id: string;
   progress: number;
+  completed_lessons: number[];
 }
 
 // Icon mapping
@@ -61,9 +87,10 @@ const iconMap: Record<string, React.ElementType> = {
 };
 
 // Memoized course card
-const CourseCard = memo(({ course, progress, onStart }: { 
+const CourseCard = memo(({ course, progress, completedLessons, onStart }: { 
   course: Course;
   progress: number;
+  completedLessons: number;
   onStart: () => void;
 }) => {
   const IconComponent = iconMap[course.icon] || Globe;
@@ -99,7 +126,7 @@ const CourseCard = memo(({ course, progress, onStart }: {
                 </span>
                 <span className="flex items-center gap-1">
                   <FileText className="w-4 h-4" />
-                  {course.lessons} lessons
+                  {completedLessons}/{course.lessons} lessons
                 </span>
               </div>
               <div className="flex flex-wrap gap-1 mb-3">
@@ -118,7 +145,7 @@ const CourseCard = memo(({ course, progress, onStart }: {
               </div>
             </div>
           </div>
-          <Button className="w-full mt-4 group-hover:bg-primary/20" variant="outline" onClick={onStart}>
+          <Button className="w-full mt-4" onClick={onStart}>
             <Play className="w-4 h-4 mr-2" />
             {progress > 0 ? "Continue Learning" : "Start Course"}
           </Button>
@@ -130,60 +157,279 @@ const CourseCard = memo(({ course, progress, onStart }: {
 
 CourseCard.displayName = 'CourseCard';
 
-// Quiz Component
-const QuizCard = memo(({ question, options, onAnswer }: {
-  question: string;
-  options: string[];
-  onAnswer: (answer: string) => void;
+// Lesson Modal Component
+const LessonModal = memo(({ 
+  isOpen, 
+  onClose, 
+  course, 
+  lessons, 
+  currentLesson, 
+  setCurrentLesson,
+  completedLessons,
+  onCompleteLesson,
+  onQuizAnswer
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  course: Course | null;
+  lessons: LessonContent[];
+  currentLesson: number;
+  setCurrentLesson: (n: number) => void;
+  completedLessons: number[];
+  onCompleteLesson: (lessonNumber: number) => void;
+  onQuizAnswer: (correct: boolean) => void;
 }) => {
-  const [selected, setSelected] = useState<string | null>(null);
-  const [revealed, setRevealed] = useState(false);
-
-  const handleSelect = (option: string) => {
-    if (revealed) return;
-    setSelected(option);
-    setRevealed(true);
-    setTimeout(() => onAnswer(option), 1500);
+  const [quizAnswers, setQuizAnswers] = useState<Record<number, number>>({});
+  const [quizRevealed, setQuizRevealed] = useState(false);
+  
+  const lesson = lessons[currentLesson];
+  
+  const handleQuizSubmit = () => {
+    if (!lesson || lesson.content_type !== 'quiz') return;
+    
+    const questions = lesson.content.questions || [];
+    let correct = 0;
+    questions.forEach((q, idx) => {
+      if (quizAnswers[idx] === q.correct_index) correct++;
+    });
+    
+    setQuizRevealed(true);
+    const score = Math.round((correct / questions.length) * 100);
+    
+    if (score >= 70) {
+      toast.success(`Quiz passed! Score: ${score}%`);
+      onQuizAnswer(true);
+      onCompleteLesson(lesson.lesson_number);
+    } else {
+      toast.error(`Quiz failed. Score: ${score}%. Try again!`);
+      onQuizAnswer(false);
+    }
   };
+  
+  const resetQuiz = () => {
+    setQuizAnswers({});
+    setQuizRevealed(false);
+  };
+  
+  useEffect(() => {
+    resetQuiz();
+  }, [currentLesson]);
+
+  if (!course || !lesson) return null;
 
   return (
-    <Card className="glass-ultra border-primary/20">
-      <CardContent className="p-6">
-        <h3 className="font-bold text-lg text-foreground mb-4">{question}</h3>
-        <div className="space-y-3">
-          {options.map((option, i) => (
-            <motion.button
-              key={i}
-              whileHover={!revealed ? { scale: 1.02 } : {}}
-              whileTap={!revealed ? { scale: 0.98 } : {}}
-              onClick={() => handleSelect(option)}
-              className={`w-full p-4 rounded-lg border text-left transition-all ${
-                selected === option
-                  ? i === 0 ? 'border-green-500 bg-green-500/20' : 'border-red-500 bg-red-500/20'
-                  : revealed && i === 0
-                  ? 'border-green-500 bg-green-500/10'
-                  : 'border-border/50 hover:border-primary/30 bg-card/50'
+    <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto glass-ultra border-primary/30">
+        <DialogHeader>
+          <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
+            <Button variant="ghost" size="sm" onClick={onClose}>
+              <ArrowLeft className="w-4 h-4 mr-1" />
+              Back to courses
+            </Button>
+          </div>
+          <DialogTitle className="text-2xl text-foreground flex items-center gap-3">
+            {lesson.content_type === 'text' && <BookOpen className="w-6 h-6 text-primary" />}
+            {lesson.content_type === 'video' && <Video className="w-6 h-6 text-primary" />}
+            {lesson.content_type === 'quiz' && <Target className="w-6 h-6 text-primary" />}
+            {lesson.title}
+          </DialogTitle>
+        </DialogHeader>
+        
+        {/* Lesson Progress */}
+        <div className="flex items-center gap-2 mb-6">
+          {lessons.map((l, idx) => (
+            <button
+              key={l.id}
+              onClick={() => setCurrentLesson(idx)}
+              className={`flex items-center justify-center w-10 h-10 rounded-full transition-all ${
+                completedLessons.includes(l.lesson_number)
+                  ? 'bg-green-500/20 text-green-400 border-2 border-green-500'
+                  : idx === currentLesson
+                  ? 'bg-primary/20 text-primary border-2 border-primary'
+                  : 'bg-muted/20 text-muted-foreground border border-border/50'
               }`}
             >
-              <span className="text-foreground">{option}</span>
-              {revealed && i === 0 && <CheckCircle className="inline-block w-4 h-4 ml-2 text-green-400" />}
-            </motion.button>
+              {completedLessons.includes(l.lesson_number) ? (
+                <CheckCircle className="w-5 h-5" />
+              ) : (
+                <span className="text-sm font-bold">{idx + 1}</span>
+              )}
+            </button>
           ))}
         </div>
-      </CardContent>
-    </Card>
+        
+        {/* Lesson Content */}
+        <div className="space-y-6">
+          {lesson.content_type === 'text' && (
+            <div className="space-y-4">
+              <p className="text-foreground text-lg leading-relaxed">
+                {lesson.content.description}
+              </p>
+              {lesson.content.key_points && (
+                <div className="space-y-3">
+                  <h4 className="font-semibold text-foreground flex items-center gap-2">
+                    <Lightbulb className="w-5 h-5 text-yellow-400" />
+                    Key Points
+                  </h4>
+                  <ul className="space-y-2">
+                    {lesson.content.key_points.map((point, idx) => (
+                      <motion.li
+                        key={idx}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: idx * 0.1 }}
+                        className="flex items-start gap-3 text-muted-foreground"
+                      >
+                        <ChevronRight className="w-4 h-4 text-primary mt-1 shrink-0" />
+                        <span>{point}</span>
+                      </motion.li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              <Button 
+                className="w-full mt-6"
+                onClick={() => onCompleteLesson(lesson.lesson_number)}
+                disabled={completedLessons.includes(lesson.lesson_number)}
+              >
+                {completedLessons.includes(lesson.lesson_number) ? (
+                  <>
+                    <CheckCircle className="w-4 h-4 mr-2" />
+                    Completed
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle className="w-4 h-4 mr-2" />
+                    Mark as Complete
+                  </>
+                )}
+              </Button>
+            </div>
+          )}
+          
+          {lesson.content_type === 'video' && (
+            <div className="space-y-4">
+              <div className="aspect-video bg-card/50 rounded-xl border border-border/50 flex items-center justify-center">
+                <div className="text-center space-y-4">
+                  <div className="w-20 h-20 mx-auto rounded-full bg-primary/20 flex items-center justify-center">
+                    <Play className="w-10 h-10 text-primary" />
+                  </div>
+                  <p className="text-muted-foreground">Video content placeholder</p>
+                  <p className="text-sm text-muted-foreground">{lesson.content.description}</p>
+                </div>
+              </div>
+              <Button 
+                className="w-full"
+                onClick={() => onCompleteLesson(lesson.lesson_number)}
+                disabled={completedLessons.includes(lesson.lesson_number)}
+              >
+                {completedLessons.includes(lesson.lesson_number) ? (
+                  <>
+                    <CheckCircle className="w-4 h-4 mr-2" />
+                    Completed
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle className="w-4 h-4 mr-2" />
+                    Mark as Watched
+                  </>
+                )}
+              </Button>
+            </div>
+          )}
+          
+          {lesson.content_type === 'quiz' && (
+            <div className="space-y-6">
+              {lesson.content.questions?.map((q, qIdx) => (
+                <div key={qIdx} className="space-y-3">
+                  <h4 className="font-semibold text-foreground">
+                    {qIdx + 1}. {q.question}
+                  </h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {q.options.map((opt, oIdx) => (
+                      <button
+                        key={oIdx}
+                        onClick={() => !quizRevealed && setQuizAnswers(prev => ({ ...prev, [qIdx]: oIdx }))}
+                        disabled={quizRevealed}
+                        className={`p-3 rounded-lg border text-left transition-all ${
+                          quizRevealed
+                            ? oIdx === q.correct_index
+                              ? 'bg-green-500/20 border-green-500 text-green-400'
+                              : quizAnswers[qIdx] === oIdx
+                              ? 'bg-red-500/20 border-red-500 text-red-400'
+                              : 'bg-muted/10 border-border/50 text-muted-foreground'
+                            : quizAnswers[qIdx] === oIdx
+                            ? 'bg-primary/20 border-primary text-primary'
+                            : 'bg-card/50 border-border/50 text-foreground hover:border-primary/50'
+                        }`}
+                      >
+                        {opt}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+              
+              <div className="flex gap-3">
+                {!quizRevealed ? (
+                  <Button 
+                    className="flex-1"
+                    onClick={handleQuizSubmit}
+                    disabled={Object.keys(quizAnswers).length < (lesson.content.questions?.length || 0)}
+                  >
+                    Submit Quiz
+                  </Button>
+                ) : (
+                  <Button 
+                    className="flex-1"
+                    variant="outline"
+                    onClick={resetQuiz}
+                  >
+                    Try Again
+                  </Button>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+        
+        {/* Navigation */}
+        <div className="flex justify-between mt-6 pt-4 border-t border-border/50">
+          <Button
+            variant="outline"
+            onClick={() => setCurrentLesson(Math.max(0, currentLesson - 1))}
+            disabled={currentLesson === 0}
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Previous
+          </Button>
+          <Button
+            onClick={() => setCurrentLesson(Math.min(lessons.length - 1, currentLesson + 1))}
+            disabled={currentLesson === lessons.length - 1}
+          >
+            Next
+            <ChevronRight className="w-4 h-4 ml-2" />
+          </Button>
+        </div>
+      </DialogContent>
+    </Dialog>
   );
 });
 
-QuizCard.displayName = 'QuizCard';
+LessonModal.displayName = 'LessonModal';
 
 const Learn = () => {
   const [courses, setCourses] = useState<Course[]>([]);
-  const [userProgress, setUserProgress] = useState<Record<string, number>>({});
+  const [lessonsByCoure, setLessonsByCourse] = useState<Record<string, LessonContent[]>>({});
+  const [userProgress, setUserProgress] = useState<Record<string, UserProgress>>({});
   const [loading, setLoading] = useState(true);
   const [quizScore, setQuizScore] = useState(0);
-  const [currentQuiz, setCurrentQuiz] = useState(0);
   const [funFact, setFunFact] = useState("");
+  
+  // Modal state
+  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
+  const [currentLessonIndex, setCurrentLessonIndex] = useState(0);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const funFacts = useMemo(() => [
     "🌍 Earth's atmosphere is 78% nitrogen and 21% oxygen!",
@@ -198,22 +444,14 @@ const Learn = () => {
     "🌋 There are about 1,500 active volcanoes on Earth"
   ], []);
 
-  const quizzes = useMemo(() => [
-    { question: "What percentage of Earth's atmosphere is nitrogen?", options: ["78%", "21%", "50%", "45%"] },
-    { question: "What produces over 50% of the world's oxygen?", options: ["The ocean", "Rainforests", "Trees", "Plankton"] },
-    { question: "How many volts are in a lightning bolt?", options: ["1 billion", "1 million", "100 million", "10 billion"] },
-    { question: "What causes the El Niño phenomenon?", options: ["Warm Pacific waters", "Cold Atlantic currents", "Volcanic activity", "Solar flares"] },
-    { question: "Which layer of the atmosphere contains the ozone layer?", options: ["Stratosphere", "Troposphere", "Mesosphere", "Thermosphere"] },
-  ], []);
-
   const achievements = useMemo(() => [
-    { title: "First Steps", desc: "Complete your first lesson", unlocked: true, icon: Star },
-    { title: "Weather Watcher", desc: "Analyze 10 weather patterns", unlocked: true, icon: Wind },
+    { title: "First Steps", desc: "Complete your first lesson", unlocked: Object.values(userProgress).some(p => p.completed_lessons?.length > 0), icon: Star },
+    { title: "Weather Watcher", desc: "Complete a weather course", unlocked: false, icon: Wind },
     { title: "Data Scientist", desc: "Complete AI course", unlocked: false, icon: Brain },
-    { title: "Global Observer", desc: "Track 50 anomalies", unlocked: false, icon: Globe },
-    { title: "Quiz Master", desc: "Score 100% on 5 quizzes", unlocked: false, icon: Lightbulb },
-    { title: "Explorer", desc: "Visit all map regions", unlocked: false, icon: Map },
-  ], []);
+    { title: "Global Observer", desc: "Complete 5 courses", unlocked: Object.values(userProgress).filter(p => p.progress === 100).length >= 5, icon: Globe },
+    { title: "Quiz Master", desc: "Score 100% on 5 quizzes", unlocked: quizScore >= 50, icon: Lightbulb },
+    { title: "Explorer", desc: "Start all courses", unlocked: Object.keys(userProgress).length >= courses.length, icon: Map },
+  ], [userProgress, quizScore, courses.length]);
 
   // Fetch courses from database
   const fetchCourses = useCallback(async () => {
@@ -228,6 +466,24 @@ const Learn = () => {
       
       if (data && data.length > 0) {
         setCourses(data);
+        
+        // Fetch lessons for all courses
+        const { data: lessonsData, error: lessonsError } = await supabase
+          .from('lesson_content')
+          .select('*')
+          .in('course_id', data.map(c => c.id))
+          .order('order_index', { ascending: true });
+          
+        if (lessonsError) throw lessonsError;
+        
+        if (lessonsData) {
+          const grouped: Record<string, LessonContent[]> = {};
+          lessonsData.forEach(lesson => {
+            if (!grouped[lesson.course_id]) grouped[lesson.course_id] = [];
+            grouped[lesson.course_id].push(lesson as LessonContent);
+          });
+          setLessonsByCourse(grouped);
+        }
       }
     } catch (error) {
       console.error('Error fetching courses:', error);
@@ -242,15 +498,19 @@ const Learn = () => {
 
       const { data, error } = await supabase
         .from('user_course_progress')
-        .select('course_id, progress')
+        .select('course_id, progress, completed_lessons')
         .eq('user_id', user.id);
 
       if (error) throw error;
 
       if (data) {
-        const progressMap: Record<string, number> = {};
+        const progressMap: Record<string, UserProgress> = {};
         data.forEach(p => {
-          progressMap[p.course_id] = p.progress;
+          progressMap[p.course_id] = {
+            course_id: p.course_id,
+            progress: p.progress,
+            completed_lessons: p.completed_lessons || []
+          };
         });
         setUserProgress(progressMap);
       }
@@ -275,46 +535,65 @@ const Learn = () => {
     return () => clearInterval(factInterval);
   }, [fetchCourses, fetchUserProgress, funFacts]);
 
-  const handleQuizAnswer = useCallback((answer: string) => {
-    const isCorrect = quizzes[currentQuiz].options[0] === answer;
-    if (isCorrect) {
-      setQuizScore(prev => prev + 1);
-      toast.success("Correct! +10 points");
-    } else {
-      toast.error("Not quite. Try the next one!");
-    }
+  const handleCompleteLesson = useCallback(async (lessonNumber: number) => {
+    if (!selectedCourse) return;
     
-    setTimeout(() => {
-      if (currentQuiz < quizzes.length - 1) {
-        setCurrentQuiz(prev => prev + 1);
-      } else {
-        toast.success(`Quiz complete! You scored ${isCorrect ? quizScore + 1 : quizScore}/${quizzes.length}`);
-        setCurrentQuiz(0);
-        setQuizScore(0);
-      }
-    }, 2000);
-  }, [currentQuiz, quizScore, quizzes]);
-
-  const handleStartCourse = useCallback(async (course: Course) => {
-    toast.success(`Starting: ${course.title}`);
+    const currentProgress = userProgress[selectedCourse.id] || { course_id: selectedCourse.id, progress: 0, completed_lessons: [] };
     
-    // Update progress in database if user is logged in
+    if (currentProgress.completed_lessons.includes(lessonNumber)) return;
+    
+    const newCompletedLessons = [...currentProgress.completed_lessons, lessonNumber];
+    const totalLessons = lessonsByCoure[selectedCourse.id]?.length || 1;
+    const newProgress = Math.round((newCompletedLessons.length / totalLessons) * 100);
+    
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
-        await supabase.from('user_course_progress').upsert({
-          user_id: user.id,
-          course_id: course.id,
-          progress: Math.min(100, (userProgress[course.id] || 0) + 10),
-          last_activity: new Date().toISOString()
-        }, { onConflict: 'user_id,course_id' });
-        
-        fetchUserProgress();
+      if (!user) {
+        toast.error('Please sign in to track progress');
+        return;
+      }
+
+      const { error } = await supabase.from('user_course_progress').upsert({
+        user_id: user.id,
+        course_id: selectedCourse.id,
+        progress: newProgress,
+        completed_lessons: newCompletedLessons,
+        last_activity: new Date().toISOString()
+      }, { onConflict: 'user_id,course_id' });
+      
+      if (error) throw error;
+      
+      setUserProgress(prev => ({
+        ...prev,
+        [selectedCourse.id]: {
+          ...currentProgress,
+          progress: newProgress,
+          completed_lessons: newCompletedLessons
+        }
+      }));
+      
+      toast.success(`Lesson completed! Progress: ${newProgress}%`);
+      
+      if (newProgress === 100) {
+        toast.success(`🎉 Congratulations! You've completed ${selectedCourse.title}!`);
       }
     } catch (error) {
       console.error('Error updating progress:', error);
+      toast.error('Failed to save progress');
     }
-  }, [userProgress, fetchUserProgress]);
+  }, [selectedCourse, userProgress, lessonsByCoure]);
+
+  const handleQuizAnswer = useCallback((correct: boolean) => {
+    if (correct) {
+      setQuizScore(prev => prev + 10);
+    }
+  }, []);
+
+  const handleStartCourse = useCallback((course: Course) => {
+    setSelectedCourse(course);
+    setCurrentLessonIndex(0);
+    setIsModalOpen(true);
+  }, []);
 
   if (loading) {
     return (
@@ -360,7 +639,7 @@ const Learn = () => {
                 { label: "Courses Available", value: courses.length, icon: BookOpen, color: "text-primary" },
                 { label: "Quiz Score", value: `${quizScore}pts`, icon: Lightbulb, color: "text-yellow-400" },
                 { label: "Achievements", value: `${achievements.filter(a => a.unlocked).length}/${achievements.length}`, icon: Award, color: "text-purple-400" },
-                { label: "Active Now", value: "2.5K+", icon: Activity, color: "text-green-400" }
+                { label: "Courses Completed", value: Object.values(userProgress).filter(p => p.progress === 100).length, icon: Activity, color: "text-green-400" }
               ].map((stat, i) => (
                 <motion.div
                   key={i}
@@ -408,65 +687,69 @@ const Learn = () => {
                 <CourseCard
                   key={course.id}
                   course={course}
-                  progress={userProgress[course.id] || 0}
+                  progress={userProgress[course.id]?.progress || 0}
+                  completedLessons={userProgress[course.id]?.completed_lessons?.length || 0}
                   onStart={() => handleStartCourse(course)}
                 />
               ))}
             </div>
           </MotionSection>
 
-          {/* Quiz Section */}
+          {/* Achievements */}
           <MotionSection delay={0.4}>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              <div>
-                <h2 className="text-2xl font-bold text-foreground flex items-center gap-2 mb-6">
-                  <Target className="w-6 h-6 text-primary" />
-                  Quick Quiz
-                </h2>
-                <QuizCard
-                  question={quizzes[currentQuiz].question}
-                  options={quizzes[currentQuiz].options}
-                  onAnswer={handleQuizAnswer}
-                />
-              </div>
-
-              {/* Achievements */}
-              <div>
-                <h2 className="text-2xl font-bold text-foreground flex items-center gap-2 mb-6">
-                  <Award className="w-6 h-6 text-primary" />
-                  Achievements
-                </h2>
-                <Card className="glass-ultra">
-                  <CardContent className="p-4 space-y-3">
-                    {achievements.map((achievement, i) => (
-                      <motion.div
-                        key={i}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: i * 0.1 }}
-                        className={`flex items-center gap-3 p-3 rounded-lg border ${
-                          achievement.unlocked 
-                            ? 'bg-primary/10 border-primary/30' 
-                            : 'bg-muted/10 border-border/30 opacity-50'
-                        }`}
-                      >
+            <h2 className="text-2xl font-bold text-foreground flex items-center gap-2 mb-6">
+              <Award className="w-6 h-6 text-primary" />
+              Achievements
+            </h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {achievements.map((achievement, i) => (
+                <motion.div
+                  key={i}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: i * 0.1 }}
+                >
+                  <Card className={`glass-ultra p-4 ${
+                    achievement.unlocked 
+                      ? 'border-primary/30' 
+                      : 'opacity-50'
+                  }`}>
+                    <div className="flex items-center gap-3">
+                      <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
+                        achievement.unlocked ? 'bg-primary/20' : 'bg-muted/20'
+                      }`}>
                         <achievement.icon className={`w-6 h-6 ${achievement.unlocked ? 'text-primary' : 'text-muted-foreground'}`} />
-                        <div className="flex-1">
-                          <p className="font-medium text-foreground">{achievement.title}</p>
-                          <p className="text-xs text-muted-foreground">{achievement.desc}</p>
-                        </div>
-                        {achievement.unlocked && <CheckCircle className="w-5 h-5 text-green-400" />}
-                      </motion.div>
-                    ))}
-                  </CardContent>
-                </Card>
-              </div>
+                      </div>
+                      <div className="flex-1">
+                        <p className="font-medium text-foreground">{achievement.title}</p>
+                        <p className="text-xs text-muted-foreground">{achievement.desc}</p>
+                      </div>
+                      {achievement.unlocked && (
+                        <CheckCircle className="w-5 h-5 text-green-400" />
+                      )}
+                    </div>
+                  </Card>
+                </motion.div>
+              ))}
             </div>
           </MotionSection>
         </div>
       </div>
 
       <Footer />
+      
+      {/* Lesson Modal */}
+      <LessonModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        course={selectedCourse}
+        lessons={selectedCourse ? lessonsByCoure[selectedCourse.id] || [] : []}
+        currentLesson={currentLessonIndex}
+        setCurrentLesson={setCurrentLessonIndex}
+        completedLessons={selectedCourse ? userProgress[selectedCourse.id]?.completed_lessons || [] : []}
+        onCompleteLesson={handleCompleteLesson}
+        onQuizAnswer={handleQuizAnswer}
+      />
     </div>
   );
 };
