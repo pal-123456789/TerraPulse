@@ -47,7 +47,7 @@ const Footer = memo(() => {
     { to: "/dashboard", label: "Dashboard" },
     { to: "/map", label: "Map Explorer" },
     { to: "/explore", label: "Explore" },
-    { to: "/analytics", label: "AnalyticHub" },
+    { to: "/analytics", label: "Analytics" },
     { to: "/learn", label: "Learn" },
     { to: "/about", label: "About" },
   ];
