@@ -369,7 +369,7 @@ const Explore = () => {
                         onClick={requestLocation} 
                         size="sm" 
                         disabled={loading}
-                        className="bg-primary/20 hover:bg-primary/30 border border-primary/40"
+                        className="bg-primary text-primary-foreground hover:bg-primary/90 font-bold"
                       >
                         {loading ? "Getting Location..." : locationError ? "Retry Location" : "Use My Location"}
                       </Button>
@@ -388,7 +388,7 @@ const Explore = () => {
                     <Button
                       onClick={handleDetection}
                       size="lg"
-                      className="glow-border bg-primary/10 hover:bg-primary/20 border-2"
+                      className="bg-primary text-primary-foreground hover:bg-primary/90 font-bold shadow-lg"
                       disabled={!weatherData || analysisLoading}
                     >
                       <Activity className="w-5 h-5 mr-2" />
@@ -398,7 +398,7 @@ const Explore = () => {
                     <Button
                       onClick={handlePrediction}
                       size="lg"
-                      className="bg-purple-500/10 hover:bg-purple-500/20 border-2 border-purple-500/30"
+                      className="bg-secondary text-secondary-foreground hover:bg-secondary/90 font-bold shadow-lg"
                       disabled={!weatherData || analysisLoading}
                     >
                       <TrendingUp className="w-5 h-5 mr-2" />

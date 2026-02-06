@@ -19,6 +19,10 @@ import {
 } from "recharts";
 import { toast } from "sonner";
 import Footer from "@/components/Footer";
+ import { RadarChart3D } from "@/components/Dashboard/RadarChart3D";
+ import { GaugeChartGroup } from "@/components/Dashboard/GaugeChart";
+ import { ScatterPlot3D } from "@/components/Dashboard/ScatterPlot3D";
+ import { ComposedChart, Scatter } from "recharts";
 
 const Dashboard = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -204,6 +208,15 @@ const Dashboard = () => {
                 <GlobalHeatmap />
                 <PerformanceMonitor />
               </div>
+
+               {/* Gauge Charts */}
+               <GaugeChartGroup />
+
+               {/* Radar and Scatter Charts */}
+               <div className="grid lg:grid-cols-2 gap-6">
+                 <RadarChart3D />
+                 <ScatterPlot3D />
+               </div>
 
               {/* Charts Row 1 */}
               <div className="grid lg:grid-cols-2 gap-6 mb-6">

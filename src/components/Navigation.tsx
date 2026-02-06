@@ -1,5 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
-import { Globe, Compass, History, BarChart2, Info, BarChart3, GraduationCap, Menu, X, Map } from "lucide-react";
+ import { Globe, Compass, History, BarChart2, Info, BarChart3, GraduationCap, Menu, X, Map, Rocket } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { UserMenu } from "./Auth/UserMenu";
 import { useEffect, useState, memo } from "react";
@@ -78,6 +78,7 @@ const Navigation = memo(() => {
     { to: "/history", label: "History", icon: History },
     { to: "/analytics", label: "Analytics", icon: BarChart2 },
     { to: "/learn", label: "Learn", icon: GraduationCap },
+     { to: "/roadmap", label: "Roadmap", icon: Rocket },
     { to: "/about", label: "About", icon: Info },
   ];
 
