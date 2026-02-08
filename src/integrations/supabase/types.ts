@@ -58,21 +58,21 @@ export type Database = {
           content: string
           created_at: string
           id: string
-          user_id: string | null
+          user_id: string
           username: string
         }
         Insert: {
           content: string
           created_at?: string
           id?: string
-          user_id?: string | null
+          user_id: string
           username?: string
         }
         Update: {
           content?: string
           created_at?: string
           id?: string
-          user_id?: string | null
+          user_id?: string
           username?: string
         }
         Relationships: []
@@ -111,6 +111,13 @@ export type Database = {
             columns: ["anomaly_id"]
             isOneToOne: false
             referencedRelation: "anomalies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "comments_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "public_reports"
             referencedColumns: ["id"]
           },
           {
@@ -358,6 +365,30 @@ export type Database = {
         }
         Relationships: []
       }
+      rate_limits: {
+        Row: {
+          endpoint: string
+          id: string
+          request_count: number | null
+          user_id: string
+          window_start: string | null
+        }
+        Insert: {
+          endpoint: string
+          id?: string
+          request_count?: number | null
+          user_id: string
+          window_start?: string | null
+        }
+        Update: {
+          endpoint?: string
+          id?: string
+          request_count?: number | null
+          user_id?: string
+          window_start?: string | null
+        }
+        Relationships: []
+      }
       reactions: {
         Row: {
           anomaly_id: string | null
@@ -389,6 +420,13 @@ export type Database = {
             columns: ["anomaly_id"]
             isOneToOne: false
             referencedRelation: "anomalies"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "reactions_report_id_fkey"
+            columns: ["report_id"]
+            isOneToOne: false
+            referencedRelation: "public_reports"
             referencedColumns: ["id"]
           },
           {
@@ -473,10 +511,86 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      chat_messages_public: {
+        Row: {
+          content: string | null
+          created_at: string | null
+          id: string | null
+          username: string | null
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string | null
+          id?: string | null
+          username?: string | null
+        }
+        Update: {
+          content?: string | null
+          created_at?: string | null
+          id?: string | null
+          username?: string | null
+        }
+        Relationships: []
+      }
+      public_profiles: {
+        Row: {
+          avatar_url: string | null
+          id: string | null
+          username: string | null
+        }
+        Insert: {
+          avatar_url?: string | null
+          id?: string | null
+          username?: string | null
+        }
+        Update: {
+          avatar_url?: string | null
+          id?: string | null
+          username?: string | null
+        }
+        Relationships: []
+      }
+      public_reports: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          id: string | null
+          image_url: string | null
+          latitude: number | null
+          longitude: number | null
+          report_type: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          id?: string | null
+          image_url?: string | null
+          latitude?: never
+          longitude?: never
+          report_type?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          id?: string | null
+          image_url?: string | null
+          latitude?: never
+          longitude?: never
+          report_type?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
-      [_ in never]: never
+      check_rate_limit: {
+        Args: {
+          p_endpoint: string
+          p_max_requests?: number
+          p_user_id: string
+          p_window_minutes?: number
+        }
+        Returns: Json
+      }
     }
     Enums: {
       [_ in never]: never

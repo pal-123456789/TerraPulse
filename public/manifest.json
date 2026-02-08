@@ -1,7 +1,7 @@
 {
-  "name": "Terra Pulse Watch",
-  "short_name": "TerraPulse",
-  "description": "Real-time global environmental monitoring and anomaly detection",
+  "name": "TerraGuardians - AI Environmental Monitoring",
+  "short_name": "TerraGuardians",
+  "description": "Real-time global environmental monitoring, anomaly detection, and AI-powered predictions using NASA satellite data",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#0a0a1a",
@@ -40,6 +40,7 @@
       "form_factor": "narrow"
     }
   ],
-  "categories": ["weather", "environment", "science"],
-  "lang": "en-US"
+  "categories": ["weather", "environment", "science", "productivity"],
+  "lang": "en-US",
+  "id": "terraguardians"
 }

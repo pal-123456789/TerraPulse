@@ -6,10 +6,11 @@ import * as THREE from 'three';
 const GlobePoints = () => {
   const pointsRef = useRef<THREE.Points>(null);
   
+  // Reduced particle count from 6000 to 2000 for better performance
   const particlesPosition = useMemo(() => {
-    const positions = new Float32Array(6000 * 3);
+    const positions = new Float32Array(2000 * 3);
     
-    for (let i = 0; i < 6000; i++) {
+    for (let i = 0; i < 2000; i++) {
       const theta = Math.random() * Math.PI * 2;
       const phi = Math.acos((Math.random() * 2) - 1);
       const radius = 1.05 + Math.random() * 0.05;
@@ -115,13 +116,13 @@ const AnimatedGlobe = () => {
       floatIntensity={0.3}
     >
       <group>
-        {/* Main globe */}
-        <Sphere ref={meshRef} args={[1, 96, 96]}>
+        {/* Main globe - reduced segments from 96 to 48 for performance */}
+        <Sphere ref={meshRef} args={[1, 48, 48]}>
           <MeshDistortMaterial
             color="#0a4d4d"
             attach="material"
-            distort={0.12}
-            speed={1.2}
+            distort={0.08}
+            speed={0.8}
             roughness={0.3}
             metalness={0.9}
             emissive="#00ffff"
@@ -178,19 +179,19 @@ export const Globe3D = ({ className = "" }: { className?: string }) => {
       <Canvas 
         camera={{ position: [0, 0, 3.2], fov: 50 }}
         gl={{ 
-          antialias: true, 
+          antialias: false, 
           alpha: true,
           powerPreference: 'high-performance',
           failIfMajorPerformanceCaveat: false
         }}
-        dpr={[1, 1.5]}
-        performance={{ min: 0.5 }}
+        dpr={1}
+        performance={{ min: 0.3 }}
       >
         <Suspense fallback={<LoadingFallback />}>
           <Stars 
             radius={80} 
             depth={40} 
-            count={3000} 
+            count={1000}
             factor={3} 
             saturation={0} 
             fade 

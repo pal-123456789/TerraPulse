@@ -127,17 +127,16 @@ const Home = () => {
   const typewriterTexts = [
     "Real-time anomaly detection",
     "AI-powered predictions",
-    "Global satellite monitoring",
-    "Environmental intelligence"
+    "Global satellite monitoring"
   ];
 
   return (
     <div className="min-h-screen bg-space-gradient relative overflow-x-hidden">
+      {/* SEO Meta - using document.title for dynamic updates */}
+      
       {/* Background effects - reduced for performance */}
-      <div className="fixed inset-0 bg-cyber-grid pointer-events-none opacity-10" />
-      <Suspense fallback={null}>
-        <ParticleField className="fixed inset-0 z-0" particleCount={30} speed={0.15} connectDistance={80} interactive={false} />
-      </Suspense>
+      <div className="fixed inset-0 bg-cyber-grid pointer-events-none opacity-5" />
+      {/* ParticleField removed from homepage for performance - too heavy */}
 
       <Navigation />
       <LiveNotifications />
