@@ -14,9 +14,9 @@ export default defineConfig(({ mode }) => ({
     mode === "development"
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'robots.txt'],
+      includeAssets: ['robots.txt'],
       manifest: {
-        name: 'Terra Pulse Watch',
+        name: 'Terraguardians',
         short_name: 'TerraPulse',
         description: 'Real-time global environmental monitoring and anomaly detection',
         theme_color: '#00d9ff',
