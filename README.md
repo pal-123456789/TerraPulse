@@ -1,3 +1,9 @@
+# Terra Pulse Watch - AI-Powered Environmental Monitoring
+
+Real-time global environmental monitoring and anomaly detection platform using NASA satellite data, weather systems, and AI-powered analysis.
+
+**Live URL**: https://terra-pulse-watch.lovable.app
+
 ## Features
 
 - 🌍 **Interactive Global Map** - Real-time visualization of environmental anomalies worldwide
@@ -29,14 +35,14 @@ The easiest way to use Terra Pulse Watch on mobile. The app is installable direc
 #### Installation on Mobile:
 
 **iOS (iPhone/iPad):**
-1. Open Safari and visit https://terraguardians.us
+1. Open Safari and visit https://terra-pulse-watch.lovable.app
 2. Tap the **Share** button (square with arrow)
 3. Scroll down and tap **"Add to Home Screen"**
 4. Tap **"Add"** to confirm
 5. The app will appear on your home screen like a native app
 
 **Android:**
-1. Open Chrome and visit https://terraguardians.us
+1. Open Chrome and visit https://terra-pulse-watch.lovable.app
 2. Tap the **three-dot menu** (⋮) in the top right
 3. Tap **"Install app"** or **"Add to Home Screen"**
 4. Confirm the installation

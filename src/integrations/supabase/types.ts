@@ -177,6 +177,48 @@ export type Database = {
         }
         Relationships: []
       }
+      email_alert_logs: {
+        Row: {
+          anomaly_name: string
+          anomaly_type: string | null
+          created_at: string
+          email_sent_to: string
+          id: string
+          latitude: number | null
+          longitude: number | null
+          severity: string | null
+          status: string
+          subject: string | null
+          user_id: string
+        }
+        Insert: {
+          anomaly_name: string
+          anomaly_type?: string | null
+          created_at?: string
+          email_sent_to: string
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          severity?: string | null
+          status?: string
+          subject?: string | null
+          user_id: string
+        }
+        Update: {
+          anomaly_name?: string
+          anomaly_type?: string | null
+          created_at?: string
+          email_sent_to?: string
+          id?: string
+          latitude?: number | null
+          longitude?: number | null
+          severity?: string | null
+          status?: string
+          subject?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       environmental_data: {
         Row: {
           created_at: string
@@ -262,6 +304,45 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      notification_preferences: {
+        Row: {
+          created_at: string
+          email_notifications_enabled: boolean
+          id: string
+          min_severity: string
+          monitored_latitude: number | null
+          monitored_longitude: number | null
+          monitoring_radius_km: number
+          notification_email: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email_notifications_enabled?: boolean
+          id?: string
+          min_severity?: string
+          monitored_latitude?: number | null
+          monitored_longitude?: number | null
+          monitoring_radius_km?: number
+          notification_email?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email_notifications_enabled?: boolean
+          id?: string
+          min_severity?: string
+          monitored_latitude?: number | null
+          monitored_longitude?: number | null
+          monitoring_radius_km?: number
+          notification_email?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       notifications: {
         Row: {

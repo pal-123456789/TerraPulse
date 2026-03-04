@@ -24,7 +24,8 @@ const MapExplorer = lazy(() => import("./pages/MapExplorer"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 const Privacy = lazy(() => import("./pages/Privacy"));
 const Terms = lazy(() => import("./pages/Terms"));
- const Roadmap = lazy(() => import("./pages/Roadmap"));
+const Roadmap = lazy(() => import("./pages/Roadmap"));
+const AlertHistory = lazy(() => import("./pages/AlertHistory"));
 
 // Loading fallback
 const PageLoader = () => (
@@ -55,6 +56,7 @@ const AppContent = () => {
         <Route path="/privacy" element={<Privacy />} />
         <Route path="/terms" element={<Terms />} />
          <Route path="/roadmap" element={<Roadmap />} />
+        <Route path="/alert-history" element={<AlertHistory />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </Suspense>

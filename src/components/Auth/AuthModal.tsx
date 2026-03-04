@@ -26,10 +26,14 @@ export const AuthModal = ({ open, onOpenChange }: AuthModalProps) => {
   const handleGoogleSignIn = async () => {
     setGoogleLoading(true);
     try {
+      const redirectUrl = window.location.hostname === 'localhost' 
+        ? `${window.location.origin}/`
+        : 'https://www.terraguardians.us/';
+
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: `${window.location.origin}/`,
+          redirectTo: redirectUrl,
           queryParams: {
             access_type: 'offline',
             prompt: 'consent',

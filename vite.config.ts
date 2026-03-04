@@ -11,7 +11,7 @@ export default defineConfig(({ mode }) => ({
   },
   plugins: [
     react(),
-    mode === "development"
+    mode === "development",
     VitePWA({
       registerType: 'autoUpdate',
       includeAssets: ['robots.txt'],

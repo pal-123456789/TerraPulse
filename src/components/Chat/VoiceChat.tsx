@@ -141,7 +141,7 @@ const VoiceChat = ({ isOpen, onClose, onAuthRequired }: VoiceChatProps) => {
       const cutoffTime = new Date(Date.now() - MESSAGE_EXPIRY_MS).toISOString();
       
       const { data, error } = await supabase
-        .from('chat_messages')
+        .from('chat_messages_public')
         .select('*')
         .gte('created_at', cutoffTime)
         .order('created_at', { ascending: true })
@@ -154,11 +154,11 @@ const VoiceChat = ({ isOpen, onClose, onAuthRequired }: VoiceChatProps) => {
 
       if (data && data.length > 0) {
         const formattedMessages: Message[] = data.map(msg => ({
-          id: msg.id,
-          content: msg.content,
-          sender: msg.user_id === currentUser?.id ? 'user' : 'other',
-          timestamp: new Date(msg.created_at),
-          username: msg.username
+          id: msg.id || crypto.randomUUID(),
+          content: msg.content || '',
+          sender: 'other' as const,
+          timestamp: new Date(msg.created_at || new Date()),
+          username: msg.username || 'Anonymous'
         }));
         setMessages(prev => [prev[0], ...formattedMessages]);
       }
@@ -178,17 +178,21 @@ const VoiceChat = ({ isOpen, onClose, onAuthRequired }: VoiceChatProps) => {
         },
         (payload) => {
           const newMsg = payload.new as { id: string; content: string; username: string; created_at: string; user_id: string };
+          
+          // Skip if this is our own message (already shown via optimistic update)
+          if (newMsg.user_id === currentUser?.id) return;
+          
           const message: Message = {
             id: newMsg.id,
             content: newMsg.content,
-            sender: newMsg.user_id === currentUser?.id ? 'user' : 'other',
+            sender: 'other',
             timestamp: new Date(newMsg.created_at),
             username: newMsg.username
           };
           setMessages(prev => [...prev, message]);
           
-          // Speak incoming message if voice is enabled and not from current user
-          if (isVoiceEnabled && newMsg.user_id !== currentUser?.id && 'speechSynthesis' in window) {
+          // Speak incoming message if voice is enabled
+          if (isVoiceEnabled && 'speechSynthesis' in window) {
             const utterance = new SpeechSynthesisUtterance(`${newMsg.username} says: ${newMsg.content}`);
             utterance.rate = 1.1;
             window.speechSynthesis.speak(utterance);
