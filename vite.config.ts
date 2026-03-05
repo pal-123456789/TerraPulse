@@ -16,7 +16,7 @@ export default defineConfig(({ mode }) => ({
       registerType: 'autoUpdate',
       includeAssets: ['robots.txt'],
       manifest: {
-        name: 'Terraguardians',
+        name: 'TerraGuardians',
         short_name: 'TerraPulse',
         description: 'Real-time global environmental monitoring and anomaly detection',
         theme_color: '#00d9ff',

@@ -196,7 +196,7 @@ Provide analysis in JSON format:
       recommendation: "Manual review recommended"
     };
 
-    // Store anomaly if detected with high confidence
+    // Store anomaly and create in-app notification if detected with high confidence
     if (analysis.hasAnomaly && analysis.confidence >= 60) {
       const serviceClient = createClient(
         Deno.env.get("SUPABASE_URL") ?? "",
@@ -220,6 +220,14 @@ Provide analysis in JSON format:
           forecastTrend: analysis.forecastTrend,
           detectedBy: userId
         },
+      });
+
+      // Create in-app notification for the user
+      await serviceClient.from("notifications").insert({
+        user_id: userId,
+        title: `⚠️ ${formatAnomalyName(analysis.anomalyType)}`,
+        message: analysis.description || `A ${analysis.severity} severity anomaly was detected at (${latitude.toFixed(2)}°, ${longitude.toFixed(2)}°). ${analysis.recommendation || ''}`,
+        type: "anomaly_alert",
       });
     }
 

@@ -96,7 +96,7 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         personalizations: [{ to: [{ email: to }] }],
-        from: { email: "alerts@terraguardians.us", name: "TerraGuardians Alerts" },
+        from: { email: "noreply@terraguardians.us", name: "TerraGuardians Alerts" },
         subject,
         content: [{ type: "text/html", value: htmlContent }],
       }),

@@ -140,6 +140,14 @@ Respond JSON: {"hasAnomaly":bool,"severity":"low|medium|high|extreme","anomalyTy
           },
         });
 
+        // Create in-app notification
+        await supabase.from("notifications").insert({
+          user_id: pref.user_id,
+          title: `⚠️ ${analysis.anomalyType || "Environmental Anomaly"} Detected`,
+          message: analysis.description || `A ${analysis.severity} severity anomaly detected near your monitored location.`,
+          type: "anomaly_alert",
+        });
+
         // Send email notification
         const sendEmailResponse = await fetch(`${supabaseUrl}/functions/v1/send-anomaly-email`, {
           method: "POST",
