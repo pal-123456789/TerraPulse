@@ -227,7 +227,7 @@ Provide analysis in JSON format:
         user_id: userId,
         title: `⚠️ ${formatAnomalyName(analysis.anomalyType)}`,
         message: analysis.description || `A ${analysis.severity} severity anomaly was detected at (${latitude.toFixed(2)}°, ${longitude.toFixed(2)}°). ${analysis.recommendation || ''}`,
-        type: "anomaly_alert",
+        type: "anomaly",
       });
     }
 

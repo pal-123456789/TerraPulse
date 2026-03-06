@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Satellite, Radio, Orbit, RefreshCw, Zap } from 'lucide-react';
+import { Satellite, Radio, Orbit, RefreshCw, Zap, Eye } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import SatelliteDetailModal from './SatelliteDetailModal';
 
 interface SatelliteData {
   id: string;
@@ -21,7 +22,8 @@ const SatelliteTracker = () => {
     { id: 'sat-4', name: 'NOAA-20', position: { lat: -34.2, lon: 156.8, alt: 824 }, velocity: 7.4, status: 'idle' },
   ]);
   const [isDetecting, setIsDetecting] = useState(false);
-
+  const [selectedSatellite, setSelectedSatellite] = useState<SatelliteData | null>(null);
+  const [modalOpen, setModalOpen] = useState(false);
   useEffect(() => {
     const interval = setInterval(() => {
       setSatellites(prev => prev.map(sat => ({
@@ -103,7 +105,8 @@ const SatelliteTracker = () => {
         {satellites.map((sat) => (
           <div 
             key={sat.id} 
-            className="group p-4 rounded-lg bg-card/50 border border-border/50 hover:border-primary/30 transition-all duration-300 hover:bg-card/70"
+            onClick={() => { setSelectedSatellite(sat); setModalOpen(true); }}
+            className="group p-4 rounded-lg bg-card/50 border border-border/50 hover:border-primary/30 transition-all duration-300 hover:bg-card/70 cursor-pointer"
           >
             <div className="flex items-start justify-between mb-3">
               <div className="flex items-center gap-3">
@@ -120,6 +123,7 @@ const SatelliteTracker = () => {
               {sat.status === 'active' && (
                 <Radio className="w-4 h-4 text-green-400 animate-pulse" />
               )}
+              <Eye className="w-4 h-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
             </div>
             
             <div className="grid grid-cols-3 gap-3 text-sm">
@@ -154,8 +158,14 @@ const SatelliteTracker = () => {
 
       <div className="mt-6 flex items-center justify-center gap-2 text-xs text-muted-foreground">
         <Orbit className="w-4 h-4 animate-spin" style={{ animationDuration: '8s' }} />
-        <span>Real-time orbital data from NORAD TLE</span>
+        <span>Click a satellite to view live imagery • Data from NORAD TLE</span>
       </div>
+
+      <SatelliteDetailModal
+        satellite={selectedSatellite}
+        open={modalOpen}
+        onOpenChange={setModalOpen}
+      />
     </Card>
   );
 };
