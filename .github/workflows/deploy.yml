@@ -2,7 +2,7 @@ name: Deploy to GitHub Pages
 
 on:
   push:
-    branches: [ main ] # or 'master', check your branch name
+    branches: [ main ]
 
 permissions:
   contents: read
@@ -27,10 +27,13 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Add Custom Domain CNAME
+        run: echo "terraguardians.us" > ./dist/CNAME
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: ./dist # Vite builds to 'dist' by default
+          path: ./dist
 
   deploy:
     environment:
