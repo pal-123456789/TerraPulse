@@ -138,12 +138,12 @@ const Footer = memo(() => {
             >
               <Mail className="w-5 h-5 text-primary mt-0.5 flex-shrink-0 group-hover:animate-pulse" />
               <div>
-                <p className="text-sm font-medium text-foreground mb-1">Pal Ghevariya</p>
+                <p className="text-sm font-medium text-foreground mb-1">TerraGuardians Team</p>
                 <a
-                  href="mailto:palghevariya.co23d2@scet.ac.in"
+                  href="mailto:contact@terraguardians.us"
                   className="text-sm text-muted-foreground hover:text-primary transition-colors duration-300 break-all"
                 >
-                  palghevariya.co23d2@scet.ac.in
+                  contact@terraguardians.us
                 </a>
               </div>
             </motion.div>

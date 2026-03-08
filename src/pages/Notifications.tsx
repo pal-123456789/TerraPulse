@@ -3,7 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Bell, Check, CheckCheck, Loader2, Home } from "lucide-react";
+import { Bell, Check, CheckCheck, Loader2, Home, Trash2 } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
 import { useRealtimeNotifications } from "@/hooks/useRealtimeNotifications";
 import { Link } from "react-router-dom";
@@ -17,6 +17,35 @@ const Notifications = () => {
   const [allNotifications, setAllNotifications] = useState<any[]>([]);
 
   const { notifications: realtimeNotifications, markAsRead, markAllAsRead } = useRealtimeNotifications(userId);
+
+  const deleteNotification = async (notificationId: string) => {
+    const { error } = await supabase
+      .from("notifications")
+      .delete()
+      .eq("id", notificationId);
+
+    if (error) {
+      console.error("Error deleting notification:", error);
+      return;
+    }
+
+    setAllNotifications(prev => prev.filter(n => n.id !== notificationId));
+  };
+
+  const deleteAllNotifications = async () => {
+    if (!userId) return;
+    const { error } = await supabase
+      .from("notifications")
+      .delete()
+      .eq("user_id", userId);
+
+    if (error) {
+      console.error("Error deleting all notifications:", error);
+      return;
+    }
+
+    setAllNotifications([]);
+  };
 
   useEffect(() => {
     const getUser = async () => {
@@ -100,6 +129,12 @@ const Notifications = () => {
                     Mark all as read
                   </Button>
                 )}
+                {allNotifications.length > 0 && (
+                  <Button onClick={deleteAllNotifications} variant="outline" size="sm" className="text-destructive hover:text-destructive">
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Delete all
+                  </Button>
+                )}
                 <Link to="/">
                   <Button variant="outline" size="icon" className="glass-panel">
                     <Home className="w-5 h-5" />
@@ -146,16 +181,27 @@ const Notifications = () => {
                         {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
                       </p>
                     </div>
-                    {!notification.is_read && (
+                    <div className="flex flex-col gap-1 flex-shrink-0">
+                      {!notification.is_read && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => markAsRead(notification.id)}
+                          title="Mark as read"
+                        >
+                          <Check className="w-4 h-4" />
+                        </Button>
+                      )}
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => markAsRead(notification.id)}
-                        className="flex-shrink-0"
+                        onClick={() => deleteNotification(notification.id)}
+                        className="text-destructive hover:text-destructive"
+                        title="Delete notification"
                       >
-                        <Check className="w-4 h-4" />
+                        <Trash2 className="w-4 h-4" />
                       </Button>
-                    )}
+                    </div>
                   </div>
                 </CardContent>
               </Card>

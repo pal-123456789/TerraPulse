@@ -6,7 +6,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { useLenisScroll } from "@/hooks/useLenisScroll";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
-import { LoadingVFX } from "@/components/3D/LoadingVFX";
+import { Loader2 } from "lucide-react";
 
 // Lazy load pages for better performance
 const Home = lazy(() => import("./pages/Home"));
@@ -30,7 +30,10 @@ const AlertHistory = lazy(() => import("./pages/AlertHistory"));
 // Loading fallback
 const PageLoader = () => (
   <div className="min-h-screen bg-space-gradient flex items-center justify-center">
-    <LoadingVFX text="Loading..." />
+    <div className="flex flex-col items-center gap-4">
+      <Loader2 className="w-10 h-10 text-primary animate-spin" />
+      <p className="text-primary text-sm font-medium animate-pulse">Loading...</p>
+    </div>
   </div>
 );
   

@@ -88,24 +88,42 @@ serve(async (req) => {
 </body>
 </html>`;
 
-    const response = await fetch("https://api.sendgrid.com/v3/mail/send", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${SENDGRID_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        personalizations: [{ to: [{ email: to }] }],
-        from: { email: "palghevariya.co23d2@scet.ac.in", name: "Team TerraGuardians | No-Reply" },
-        subject,
-        content: [{ type: "text/html", value: htmlContent }],
-      }),
-    });
+    // Try sending with the domain-verified sender first, fall back to verified single sender
+    const senders = [
+      { email: "palghevariya.co23d2@scet.ac.in", name: "Team TerraGuardians" },
+    ];
 
-    if (!response.ok) {
+    let lastError = "";
+    let sent = false;
+
+    for (const sender of senders) {
+      const response = await fetch("https://api.sendgrid.com/v3/mail/send", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${SENDGRID_API_KEY}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          personalizations: [{ to: [{ email: to }] }],
+          from: sender,
+          subject,
+          content: [{ type: "text/html", value: htmlContent }],
+        }),
+      });
+
+      if (response.ok || response.status === 202) {
+        console.log(`Email sent to ${to} via sender ${sender.email}`);
+        sent = true;
+        break;
+      }
+
       const errorText = await response.text();
-      console.error("SendGrid error:", response.status, errorText);
-      throw new Error(`SendGrid error: ${response.status}`);
+      lastError = `SendGrid ${response.status}: ${errorText}`;
+      console.warn(`Sender ${sender.email} failed: ${lastError}. Trying next...`);
+    }
+
+    if (!sent) {
+      throw new Error(`All senders failed. Last error: ${lastError}`);
     }
 
     // Log the email alert to database
@@ -134,7 +152,6 @@ serve(async (req) => {
       });
     }
 
-    console.log(`Email sent to ${to}`);
     return new Response(JSON.stringify({ success: true }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });

@@ -162,7 +162,7 @@ VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 ## 📂 Project Structure
 
 ```
-terra-pulse-watch/
+terra-pulse/
 ├── src/
 │   ├── components/       # Reusable UI components
 │   │   ├── 3D/           # Three.js/R3F components
@@ -184,13 +184,8 @@ terra-pulse-watch/
 
 ## 🔗 Useful Links
 
-- [Lovable Project](https://lovable.dev/projects/a842b7d3-bde0-425e-baa9-259de51ba29a)
 - [Capacitor Documentation](https://capacitorjs.com/docs)
 - [PWA Documentation](https://web.dev/progressive-web-apps/)
 - [Supabase Documentation](https://supabase.com/docs)
 
 ---
-
-## 📄 License
-
-This project is built with [Lovable](https://lovable.dev).

@@ -60,7 +60,7 @@ const Privacy = () => {
               <p className="text-muted-foreground leading-relaxed">
                 You have the right to access, modify, or delete your personal data. You can export your data 
                 at any time through your account settings. To exercise these rights, contact us at 
-                palghevariya.co23d2@scet.ac.in.
+                contact@terraguardians.us.
               </p>
             </section>
 
@@ -69,9 +69,11 @@ const Privacy = () => {
               <p className="text-muted-foreground leading-relaxed">
                 If you have any questions about this Privacy Policy, please contact:
                 <br />
-                <strong className="text-foreground">Pal Ghevariya</strong>
+                <strong className="text-foreground">TerraGuardians Team</strong>
                 <br />
-                Email: palghevariya.co23d2@scet.ac.in
+                Email: contact@terraguardians.us
+                <br />
+                Website: <a href="https://www.terraguardians.us" className="text-primary hover:underline">www.terraguardians.us</a>
               </p>
             </section>
           </div>

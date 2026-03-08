@@ -37,7 +37,7 @@ import {
 import { toast } from "sonner";
 import Footer from "@/components/Footer";
 import { motion, AnimatePresence } from "framer-motion";
-import { LoadingVFX } from "@/components/3D/LoadingVFX";
+import { Loader2 } from "lucide-react";
 import { MotionSection } from "@/components/MotionSection";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
@@ -309,15 +309,47 @@ const LessonModal = memo(({
           
           {lesson.content_type === 'video' && (
             <div className="space-y-4">
-              <div className="aspect-video bg-card/50 rounded-xl border border-border/50 flex items-center justify-center">
-                <div className="text-center space-y-4">
-                  <div className="w-20 h-20 mx-auto rounded-full bg-primary/20 flex items-center justify-center">
-                    <Play className="w-10 h-10 text-primary" />
-                  </div>
-                  <p className="text-muted-foreground">Video content placeholder</p>
-                  <p className="text-sm text-muted-foreground">{lesson.content.description}</p>
+              {lesson.content.video_url && lesson.content.video_url !== 'https://example.com/video' ? (
+                <div className="aspect-video rounded-xl overflow-hidden border border-border/50">
+                  <iframe
+                    src={lesson.content.video_url}
+                    title={lesson.title}
+                    className="w-full h-full"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowFullScreen
+                    loading="lazy"
+                  />
                 </div>
-              </div>
+              ) : (
+                <div className="aspect-video bg-card/50 rounded-xl border border-border/50 flex items-center justify-center">
+                  <div className="text-center space-y-4">
+                    <div className="w-20 h-20 mx-auto rounded-full bg-primary/20 flex items-center justify-center">
+                      <Play className="w-10 h-10 text-primary" />
+                    </div>
+                    <p className="text-muted-foreground">Video coming soon</p>
+                  </div>
+                </div>
+              )}
+              {lesson.content.description && (
+                <p className="text-muted-foreground text-sm">{lesson.content.description}</p>
+              )}
+              {/* External Resources */}
+              {lesson.content.key_points && lesson.content.key_points.length > 0 && (
+                <div className="space-y-2">
+                  <h4 className="font-semibold text-foreground flex items-center gap-2">
+                    <Lightbulb className="w-5 h-5 text-yellow-400" />
+                    Additional Resources
+                  </h4>
+                  <ul className="space-y-2">
+                    {lesson.content.key_points.map((point, idx) => (
+                      <li key={idx} className="flex items-start gap-3 text-muted-foreground text-sm">
+                        <ChevronRight className="w-4 h-4 text-primary mt-0.5 shrink-0" />
+                        <span>{point}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
               <Button 
                 className="w-full"
                 onClick={() => onCompleteLesson(lesson.lesson_number)}
@@ -598,7 +630,10 @@ const Learn = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-space-gradient flex items-center justify-center">
-        <LoadingVFX text="Loading Learning Hub..." />
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="w-10 h-10 text-primary animate-spin" />
+          <p className="text-primary text-sm font-medium animate-pulse">Loading Learning Hub...</p>
+        </div>
       </div>
     );
   }

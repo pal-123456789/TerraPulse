@@ -2,6 +2,9 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <meta http-equiv="X-Frame-Options" content="SAMEORIGIN" />
+    <meta http-equiv="X-Content-Type-Options" content="nosniff" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.supabase.co https://unpkg.com; style-src 'self' 'unsafe-inline' https://unpkg.com https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' data: blob: https://*.nasa.gov https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com https://*.supabase.co https://epic.gsfc.nasa.gov https://i.ytimg.com https://*.youtube.com; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.openweathermap.org https://*.nasa.gov https://epic.gsfc.nasa.gov https://tle.ivanstanojevic.me https://nominatim.openstreetmap.org; frame-src https://www.youtube.com https://youtube.com https://eyes.nasa.gov; media-src 'self' blob:; worker-src 'self' blob:;" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
     <title>TerraGuardians | AI Environmental Monitoring & Anomaly Detection Platform</title>
     <meta name="description" content="TerraGuardians (TerraPulse) - Real-time environmental anomaly detection and AI-powered predictions using NASA satellite data. Monitor global environmental changes, weather systems, and natural disasters with cutting-edge technology.">
@@ -62,6 +65,18 @@
       }
     }
     </script>
+    
+    <!-- Preconnect to external services -->
+    <link rel="preconnect" href="https://bwqdgorcraiidyqbwlno.supabase.co" crossorigin />
+    <link rel="dns-prefetch" href="https://api.nasa.gov" />
+    <link rel="dns-prefetch" href="https://api.openweathermap.org" />
+    
+    <!-- Preload critical CSS -->
+    <style>
+      /* Critical CSS - prevent layout shift */
+      body { margin: 0; background: hsl(222, 47%, 5%); color: white; font-family: system-ui, sans-serif; }
+      #root { min-height: 100vh; }
+    </style>
   </head>
   <body>
     <div id="root"></div>
