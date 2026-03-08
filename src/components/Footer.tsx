@@ -140,10 +140,10 @@ const Footer = memo(() => {
               <div>
                 <p className="text-sm font-medium text-foreground mb-1">TerraGuardians Team</p>
                 <a
-                  href="mailto:contact@terraguardians.us"
+                  href="mailto:palghevariya.co23d2@scet.ac.in"
                   className="text-sm text-muted-foreground hover:text-primary transition-colors duration-300 break-all"
                 >
-                  contact@terraguardians.us
+                  palghevariya.co23d2@scet.ac.in
                 </a>
               </div>
             </motion.div>
