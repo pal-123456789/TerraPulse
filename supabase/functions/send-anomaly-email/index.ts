@@ -90,6 +90,7 @@ serve(async (req) => {
 
     // Try sending with the domain-verified sender first, fall back to verified single sender
     const senders = [
+      { email: "noreply@terraguardians.us", name: "Team TerraGuardians"},
       { email: "palghevariya.co23d2@scet.ac.in", name: "Team TerraGuardians" },
     ];
 
