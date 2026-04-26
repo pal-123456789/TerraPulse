@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-Content-Type-Options" content="nosniff" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.supabase.co https://unpkg.com https://cdn.gpteng.co; style-src 'self' 'unsafe-inline' https://unpkg.com https://fonts.googleapis.com https://cdn.gpteng.co; font-src 'self' https://fonts.gstatic.com https://cdn.gpteng.co data:; img-src 'self' data: blob: https://storage.googleapis.com https://cdn.gpteng.co https://*.nasa.gov https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com https://*.supabase.co https://epic.gsfc.nasa.gov https://i.ytimg.com https://*.youtube.com; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.openweathermap.org https://*.nasa.gov https://epic.gsfc.nasa.gov https://tle.ivanstanojevic.me https://nominatim.openstreetmap.org https://cdn.gpteng.co; frame-src https://www.youtube.com https://youtube.com https://eyes.nasa.gov; media-src 'self' blob:; worker-src 'self' blob:;" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
+    <title>TerraGuardians | AI Environmental Monitoring & Anomaly Detection Platform</title>
+    <meta name="description" content="TerraGuardians (TerraPulse) - Real-time environmental anomaly detection and AI-powered predictions using NASA satellite data. Monitor global environmental changes, weather systems, and natural disasters with cutting-edge technology.">
+    <meta name="keywords" content="TerraGuardians, TerraPulse, environmental monitoring, anomaly detection, AI predictions, NASA satellite data, climate monitoring, weather tracking, natural disaster detection, global environmental intelligence, earth observation, real-time monitoring">
+    <meta name="author" content="TerraGuardians" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    <link rel="canonical" href="https://www.terraguardians.us/" />
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#00d9ff" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="TerraGuardians" />
+    <link rel="manifest" href="/manifest.json" />
+    <link rel="apple-touch-icon" href="/pwa-192x192.png" />
+    
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="TerraGuardians" />
+    <meta property="og:url" content="https://www.terraguardians.us/" />
+    <meta property="og:image" content="https://www.terraguardians.us/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="TerraGuardians - AI-Powered Environmental Monitoring Platform" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:site" content="@terraguardians" />
+    <meta name="twitter:image" content="https://www.terraguardians.us/og-image.png" />
+    <meta property="og:title" content="TerraGuardians | AI Environmental Monitoring & Anomaly Detection">
+    <meta name="twitter:title" content="TerraGuardians | AI Environmental Monitoring & Anomaly Detection">
+    <meta property="og:description" content="Real-time environmental anomaly detection and AI-powered predictions using NASA satellite data. Monitor global environmental changes with cutting-edge technology.">
+    <meta name="twitter:description" content="Real-time environmental anomaly detection and AI-powered predictions using NASA satellite data. Monitor global environmental changes with cutting-edge technology.">
+    <link rel="icon" type="image/x-icon" href="https://storage.googleapis.com/gpt-engineer-file-uploads/PUtEXcKoXcYFuEk9D4NNHHx4sYi2/uploads/1759490484244-IMG_20250915_223314.jpg">
+    
+    <!-- Structured Data for SEO -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "TerraGuardians",
+      "alternateName": "TerraPulse",
+      "url": "https://www.terraguardians.us/",
+      "description": "AI-powered environmental monitoring and anomaly detection platform using NASA satellite data for real-time global environmental intelligence.",
+      "applicationCategory": "EnvironmentApplication",
+      "operatingSystem": "Web Browser",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "author": {
+        "@type": "Organization",
+        "name": "TerraGuardians"
+      },
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": "https://www.terraguardians.us/explore?q={search_term_string}",
+        "query-input": "required name=search_term_string"
+      }
+    }
+    </script>
+    
+    <!-- Preconnect to external services -->
+    <link rel="preconnect" href="https://bwqdgorcraiidyqbwlno.supabase.co" crossorigin />
+    <link rel="dns-prefetch" href="https://api.nasa.gov" />
+    <link rel="dns-prefetch" href="https://api.openweathermap.org" />
+    
+    <!-- Preload critical CSS -->
+    <style>
+      /* Critical CSS - prevent layout shift */
+      body { margin: 0; background: hsl(222, 47%, 5%); color: white; font-family: system-ui, sans-serif; }
+      #root { min-height: 100vh; }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
