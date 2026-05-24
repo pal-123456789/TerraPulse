@@ -1,0 +1,10 @@
+project_id = "bwqdgorcraiidyqbwlno"
+
+[functions.send-anomaly-email]
+verify_jwt = false
+
+[functions.background-detection]
+verify_jwt = false
+
+[functions.ai-chat]
+verify_jwt = false
