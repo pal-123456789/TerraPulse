@@ -1,0 +1,1 @@
+ALTER TABLE public.chat_messages DROP CONSTRAINT chat_messages_user_id_fkey; ALTER TABLE public.chat_messages ADD CONSTRAINT chat_messages_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE;

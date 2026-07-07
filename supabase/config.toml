@@ -1,0 +1,22 @@
+project_id = "bwqdgorcraiidyqbwlno"
+
+[functions.send-anomaly-email]
+verify_jwt = true
+
+[functions.background-detection]
+verify_jwt = false
+
+[functions.ai-chat]
+verify_jwt = false
+
+[functions.ingest-aikido-findings]
+verify_jwt = false
+
+[functions.fetch-sentry-issues]
+verify_jwt = false
+
+[functions.ops-rule-dispatcher]
+verify_jwt = false
+
+[functions.auth-email-sendgrid]
+verify_jwt = false

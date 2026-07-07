@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Redirecting...</title>
+    <script>
+      // Redirect to the main app with the current path
+      // This allows the SPA router to handle the route
+      const path = window.location.pathname + window.location.search + window.location.hash;
+      window.location.replace('/' + (path !== '/' ? '?redirect=' + encodeURIComponent(path) : ''));
+    </script>
+    <style>
+      body {
+        background: linear-gradient(135deg, #0a0a12 0%, #1a1a2e 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        margin: 0;
+        color: #00fff7;
+        font-family: system-ui, -apple-system, sans-serif;
+      }
+      .loader {
+        text-align: center;
+      }
+      .spinner {
+        width: 50px;
+        height: 50px;
+        border: 3px solid rgba(0, 255, 247, 0.2);
+        border-top-color: #00fff7;
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 20px;
+      }
+      @keyframes spin {
+        to { transform: rotate(360deg); }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="loader">
+      <div class="spinner"></div>
+      <p>Redirecting to TerraPulse...</p>
+    </div>
+  </body>
+</html>
