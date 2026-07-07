@@ -16,14 +16,14 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 22 # Updated to 22 to match deploy.yml
+          node-version: 22
           cache: npm
 
-      - run: npm ci
+      - run: npm ci --legacy-peer-deps # <--- Updated to bypass peer dependency conflicts
 
       - name: Lint
         run: npm run lint
-        continue-on-error: true # Cleaner way to allow workflow to continue if lint fails
+        continue-on-error: true
 
       - name: Build
         env:
