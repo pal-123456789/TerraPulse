@@ -26,11 +26,11 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 22 # Updated from 20 to 22 to satisfy @capacitor/cli
+          node-version: 22
           cache: npm
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --legacy-peer-deps # <--- Updated to bypass peer dependency conflicts
 
       - name: Build
         env:
