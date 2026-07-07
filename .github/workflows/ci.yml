@@ -19,7 +19,10 @@ jobs:
           node-version: 22
           cache: npm
 
-      - run: npm ci --legacy-peer-deps # <--- Updated to bypass peer dependency conflicts
+      - run: npm ci --legacy-peer-deps
+
+      - name: Inject esbuild for Vite 8 compatibility
+        run: npm install esbuild --no-save --legacy-peer-deps # <--- Adds esbuild to the environment for the build step
 
       - name: Lint
         run: npm run lint
