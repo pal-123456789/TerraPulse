@@ -16,13 +16,17 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22 # Updated to 22 to match deploy.yml
           cache: npm
 
       - run: npm ci
 
       - name: Lint
-        run: npm run lint || true
+        run: npm run lint
+        continue-on-error: true # Cleaner way to allow workflow to continue if lint fails
 
       - name: Build
+        env:
+          VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_ANON_KEY: ${{ secrets.VITE_SUPABASE_ANON_KEY }}
         run: npm run build
