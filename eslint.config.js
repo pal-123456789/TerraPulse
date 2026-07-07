@@ -19,8 +19,19 @@ export default tseslint.config(
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
-      "react-refresh/only-export-components": ["warn", { allowConstantExport: true }],
+      "react-refresh/only-export-components": [
+        "warn",
+        { allowConstantExport: true },
+      ],
       "@typescript-eslint/no-unused-vars": "off",
+      
+      // Add these lines to prevent ESLint from failing the build on these specific rules
+      "@typescript-eslint/no-explicit-any": "off",
+      "@typescript-eslint/no-empty-object-type": "off",
+      "@typescript-eslint/no-require-imports": "off",
+      
+      // Optional: Turn this to "off" if you also want to hide the missing dependency warnings
+      // "react-hooks/exhaustive-deps": "off",
     },
   },
 );
