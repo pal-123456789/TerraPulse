@@ -31,7 +31,7 @@ jobs:
         run: npm ci --legacy-peer-deps
 
       - name: Install missing esbuild
-        run: npm install esbuild --no-save
+        run: npm install esbuild --no-save --legacy-peer-deps
 
       - name: Build
         env:
