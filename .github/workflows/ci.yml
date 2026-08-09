@@ -1,7 +1,5 @@
 name: CI
 
-# Lints and builds the project on every push and pull request to ensure
-# the codebase stays green.
 on:
   push:
     branches: [main]
@@ -19,7 +17,7 @@ jobs:
           node-version: 20
           cache: npm
 
-      - run: npm ci
+      - run: npm ci --legacy-peer-deps
 
       - name: Lint
         run: npm run lint

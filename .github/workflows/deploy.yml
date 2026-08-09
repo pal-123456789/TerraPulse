@@ -1,7 +1,5 @@
 name: Deploy to GitHub Pages
 
-# Builds the Vite app and publishes the `dist/` output to GitHub Pages.
-# Trigger: every push to `main`, or manually from the Actions tab.
 on:
   push:
     branches: [main]
@@ -30,7 +28,7 @@ jobs:
           cache: npm
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --legacy-peer-deps
 
       - name: Build
         env:

@@ -20,20 +20,10 @@ export default tseslint.config(
     rules: {
       ...reactHooks.configs.recommended.rules,
       "react-refresh/only-export-components": ["warn", { allowConstantExport: true }],
-      
-      // --- FIXES FOR YOUR CURRENT ERRORS ---
-      
-      // 1. Allows the use of 'any' so your build doesn't crash
-      "@typescript-eslint/no-explicit-any": "off", 
-      
-      // 2. Suppresses warnings about empty interfaces (common in shadcn UI)
-      "@typescript-eslint/no-empty-object-type": "off",
-      
-      // 3. Allows 'require' (needed for your tailwind.config.ts)
-      "@typescript-eslint/no-require-imports": "off",
-
-      // Already off in your code
       "@typescript-eslint/no-unused-vars": "off",
+      "@typescript-eslint/no-explicit-any": "off",
+      "@typescript-eslint/no-empty-object-type": "off",
+      "@typescript-eslint/no-require-imports": "off",
     },
   },
 );
